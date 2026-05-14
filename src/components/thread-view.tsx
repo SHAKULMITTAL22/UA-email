@@ -101,13 +101,13 @@ export function ThreadView({ threadId }: { threadId: string }) {
           {lastMessage.labels.map((l) => (
             <span
               key={l}
-              className="inline-flex items-center gap-1 rounded border border-aiAccentBorder bg-aiAccentSoft px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-aiAccent"
+              className="inline-flex items-center gap-1 rounded-full border border-aiAccentBorder bg-aiAccentSoft px-2 py-0.5 text-[10px] font-medium tracking-wide text-aiAccentDeep"
             >
               {l}
               <button
                 onClick={() => void applyLabel(lastMessage, l, false)}
                 aria-label={`Remove label ${l}`}
-                className="hover:text-red-300"
+                className="text-aiAccentDeep/60 hover:text-error"
               >
                 <X className="h-2.5 w-2.5" />
               </button>
@@ -126,18 +126,18 @@ export function ThreadView({ threadId }: { threadId: string }) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: motionTokens.duration.base, delay: i * 0.03, ease: motionTokens.ease.out }}
-              className="glass-card rounded-card p-4"
+              className="rounded-card border border-cardBorder bg-card p-4 shadow-card"
             >
               <header className="flex items-baseline justify-between text-sm">
                 <span className="font-medium text-textPrimary">{m.from.name ?? m.from.email}</span>
                 <span className="font-mono text-xs text-textDim">{new Date(m.receivedAt).toLocaleString()}</span>
               </header>
               {ai && (
-                <p className="mt-2 flex items-center gap-1.5 font-display text-[13px] italic text-aiAccent">
-                  <Sparkles className="h-3.5 w-3.5" aria-hidden /> {ai.summary}
+                <p className="mt-2 flex items-center gap-1.5 font-display text-[13px] italic text-aiAccentDeep">
+                  <Sparkles className="h-3.5 w-3.5 text-aiAccent" aria-hidden /> {ai.summary}
                 </p>
               )}
-              <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-textPrimary/90">{m.body}</div>
+              <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-textPrimary">{m.body}</div>
             </motion.section>
           );
         })}
@@ -145,14 +145,14 @@ export function ThreadView({ threadId }: { threadId: string }) {
 
       <section
         aria-labelledby="reply-heading"
-        className="space-y-3 rounded-card border border-aiAccentBorder bg-aiAccentSoft p-4"
+        className="space-y-3 rounded-card border border-aiAccentBorder bg-aiAccentSoft p-4 shadow-card"
       >
         <header className="flex items-center justify-between">
           <h2
             id="reply-heading"
-            className="flex items-center gap-1.5 font-display text-lg italic text-aiAccent"
+            className="flex items-center gap-1.5 font-display text-lg italic text-aiAccentDeep"
           >
-            <Reply className="h-4 w-4" /> Suggested reply
+            <Reply className="h-4 w-4 text-aiAccent" /> Suggested reply
           </h2>
           <Button variant="ghost" size="sm" onClick={() => void regenerate()} disabled={drafting}>
             <RotateCw className={`h-3.5 w-3.5 mr-1.5 ${drafting ? "animate-spin" : ""}`} /> Regenerate
@@ -163,7 +163,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
           onChange={(e) => setDraft(e.target.value)}
           rows={6}
           aria-label="Reply body"
-          className="w-full bg-transparent border border-cardBorder rounded-card p-3 text-sm text-textPrimary placeholder:text-textDim resize-none focus:outline-none focus:border-aiAccent/60"
+          className="w-full bg-canvasSecondary border border-cardBorder rounded-card p-3 text-sm text-textPrimary placeholder:text-textDim resize-none focus:outline-none focus:border-aiAccent focus:ring-1 focus:ring-aiAccent/30"
           placeholder={suggestedReply ? "" : "Write a reply…"}
         />
         <div className="flex justify-end gap-2">
@@ -194,9 +194,9 @@ export function ThreadView({ threadId }: { threadId: string }) {
 function ThreadSkeleton() {
   return (
     <div className="space-y-6">
-      <Skeleton className="h-8 w-32 bg-card" />
-      <Skeleton className="h-32 w-full bg-card" />
-      <Skeleton className="h-32 w-full bg-card opacity-60" />
+      <Skeleton className="h-8 w-32 skeleton-shimmer" />
+      <Skeleton className="h-32 w-full skeleton-shimmer" />
+      <Skeleton className="h-32 w-full skeleton-shimmer opacity-70" />
     </div>
   );
 }
@@ -220,7 +220,7 @@ function LabelAdder({ onAdd }: { onAdd: (name: string) => void }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Add label"
-        className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border border-dashed border-aiAccent/30 text-aiAccent/80 hover:text-aiAccent hover:border-aiAccent/60"
+        className="inline-flex items-center gap-1 rounded-full border border-dashed border-aiAccent/40 px-2 py-0.5 text-[10px] font-medium tracking-wide text-aiAccentDeep/80 transition-colors hover:border-aiAccent hover:text-aiAccentDeep"
       >
         <Plus className="h-2.5 w-2.5" /> label
       </button>

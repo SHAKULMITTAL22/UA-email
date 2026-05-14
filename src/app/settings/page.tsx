@@ -194,7 +194,7 @@ export default function SettingsPage() {
       {/* Hero status panel — the visual centerpiece of the page.
           Verified state takes the prize spot. */}
       {testResult?.ok || verifiedForCurrent ? (
-        <div className="conic-border glass-card relative overflow-hidden rounded-card border-aiAccentBorder p-5">
+        <div className="conic-border relative overflow-hidden rounded-card border border-aiAccentBorder bg-card p-5 shadow-card">
           <div
             aria-hidden
             className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-aiAccent/10 blur-3xl"
@@ -214,13 +214,7 @@ export default function SettingsPage() {
           </div>
         </div>
       ) : (
-        <div
-          className="rounded-card border p-5"
-          style={{
-            background: "rgba(212,255,58,0.05)",
-            borderColor: "rgba(212,255,58,0.25)",
-          }}
-        >
+        <div className="rounded-card border border-aiAccentBorder bg-aiAccentSoft p-5 shadow-card">
           <div className="mb-2 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-aiAccent" />
             <span className="font-display text-lg italic text-textPrimary">
@@ -252,9 +246,9 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <section className="space-y-3 rounded-card border border-aiAccentBorder bg-aiAccentSoft p-4">
+      <section className="space-y-3 rounded-card border border-aiAccentBorder bg-aiAccentSoft p-4 shadow-card">
         <div className="section-rule">
-          <h2 className="text-[11px] font-medium uppercase tracking-[2.5px] text-aiAccent">
+          <h2 className="text-[11px] font-medium uppercase tracking-[2.5px] text-aiAccentDeep">
             Try the demo
           </h2>
         </div>
@@ -285,7 +279,7 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="glass-card space-y-3 rounded-card p-4">
+      <section className="space-y-3 rounded-card border border-cardBorder bg-card p-4 shadow-card">
         <div className="section-rule">
           <h2 className="text-[11px] font-medium uppercase tracking-[2.5px] text-textSecondary">
             Re-triage your inbox
@@ -335,11 +329,11 @@ export default function SettingsPage() {
 
         {/* Auto-detect wrong-provider — when a key is stashed under a different provider */}
         {orphanProvider && (
-          <div className="rounded-card border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
+          <div className="rounded-card border border-amber-300 bg-amber-50 p-3 text-xs">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" />
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" />
               <div className="flex-1">
-                <p className="text-amber-200">
+                <p className="text-amber-700">
                   You have a <strong>{providerLabel(orphanProvider)}</strong> key saved, but{" "}
                   <strong>{providerLabel(settings.llmProvider)}</strong> is currently active. Switch?
                 </p>
@@ -362,7 +356,7 @@ export default function SettingsPage() {
             id="llmProvider"
             value={settings.llmProvider}
             onChange={(e) => void update({ llmProvider: e.target.value as AppSettingsProvider })}
-            className="w-full rounded-card border border-cardBorder bg-card px-3 py-2 text-sm text-textPrimary"
+            className="w-full rounded-card border border-cardBorder bg-canvasSecondary px-3 py-2 text-sm text-textPrimary focus:outline-none focus:border-aiAccent focus:ring-1 focus:ring-aiAccent/30"
           >
             <option value="anthropic">Anthropic Claude (with prompt caching)</option>
             <option value="openai">OpenAI</option>
@@ -410,10 +404,10 @@ export default function SettingsPage() {
         </div>
 
         {testResult && !testResult.ok && (
-          <div className="mt-2 space-y-1 rounded-card border border-red-500/30 bg-red-500/10 p-3 text-xs" role="status">
+          <div className="mt-2 space-y-1 rounded-card border border-red-300 bg-red-50 p-3 text-xs" role="status">
             <div className="flex items-center gap-2 font-medium">
-              <XCircle className="h-4 w-4 text-red-400" />
-              <span className="text-red-300">Verification failed</span>
+              <XCircle className="h-4 w-4 text-error" />
+              <span className="text-red-700">Verification failed</span>
             </div>
             <div className="mt-2 grid grid-cols-[100px_1fr] gap-x-2 gap-y-0.5 font-mono text-textMuted">
               <span>provider:</span>
@@ -421,12 +415,12 @@ export default function SettingsPage() {
               <span>api key:</span>
               <span className="text-textPrimary">{testResult.keyMasked}</span>
               <span>cause:</span>
-              <span className="text-red-300">{testResult.errorCause}</span>
+              <span className="text-red-700">{testResult.errorCause}</span>
               <span>message:</span>
-              <span className="break-words text-red-300">{testResult.errorMessage}</span>
+              <span className="break-words text-red-700">{testResult.errorMessage}</span>
             </div>
             {testResult.errorCause === "auth" && testResult.providerSent === "anthropic" && (
-              <p className="mt-2 text-xs italic text-amber-300">
+              <p className="mt-2 text-xs italic text-amber-700">
                 Hint: the request was sent with provider=&quot;anthropic&quot;. If you intended Gemini, change the dropdown above to &quot;Google Gemini&quot; — pasting a key in BYOK doesn&apos;t change the active provider.
               </p>
             )}
@@ -469,7 +463,7 @@ export default function SettingsPage() {
         {accounts?.map((a) => (
           <div
             key={a.id}
-            className="glass-card flex items-center justify-between rounded-card p-3"
+            className="flex items-center justify-between rounded-card border border-cardBorder bg-card p-3 shadow-card"
           >
             <div>
               <div className="text-sm text-textPrimary">{a.label}</div>
@@ -485,7 +479,7 @@ export default function SettingsPage() {
                 await removeAccount(a.id);
                 toast.success("Account removed");
               }}
-              className="text-red-400 hover:text-red-300"
+              className="text-error hover:text-red-700 hover:bg-red-50"
             >
               Remove
             </Button>

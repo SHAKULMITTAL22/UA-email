@@ -172,7 +172,7 @@ export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: Props) 
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 rounded-card border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+              <div className="flex items-start gap-2 rounded-card border border-red-300 bg-red-50 p-3 text-sm text-red-700">
                 <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>

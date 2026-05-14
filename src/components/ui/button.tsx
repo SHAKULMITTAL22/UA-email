@@ -8,18 +8,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-aiAccent text-canvas hover:bg-aiAccent/90",
+        default: "bg-aiAccent text-white hover:bg-aiAccentDeep",
         secondary:
-          "bg-card text-textPrimary border border-cardBorder hover:bg-white/[0.06]",
-        ghost:
-          "text-textPrimary hover:bg-white/[0.04]",
+          "bg-canvasSecondary text-textPrimary border border-cardBorder hover:bg-cardHover",
+        ghost: "text-textPrimary hover:bg-aiAccentSoft hover:text-aiAccentDeep",
         outline:
-          "border border-cardBorder bg-transparent text-textPrimary hover:bg-white/[0.04]",
-        link:
-          "text-aiAccent underline-offset-4 hover:underline",
-        destructive:
-          "bg-red-500/90 text-white hover:bg-red-500",
+          "border border-cardBorder bg-transparent text-textPrimary hover:bg-aiAccentSoft hover:text-aiAccentDeep hover:border-aiAccentBorder",
+        link: "text-aiAccent underline-offset-4 hover:underline",
+        destructive: "bg-error text-white hover:bg-red-700",
       },
       size: {
         default: "h-9 px-4 py-2",

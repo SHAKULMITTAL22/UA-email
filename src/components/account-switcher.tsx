@@ -45,7 +45,7 @@ export function AccountSwitcher({ activeAccountId = "unified", onChange, onAddAc
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.15 }}
             role="listbox"
-            className="glass-card absolute left-0 top-full z-10 mt-2 w-72 rounded-drawer border border-aiAccentBorder p-1"
+            className="absolute left-0 top-full z-10 mt-2 w-72 rounded-drawer border border-aiAccentBorder bg-card p-1 shadow-cardHover"
           >
             <SwitcherItem
               label="Unified Inbox"
@@ -65,7 +65,7 @@ export function AccountSwitcher({ activeAccountId = "unified", onChange, onAddAc
             <li className="mt-1 border-t border-cardBorder pt-1">
               <button
                 onClick={() => { setOpen(false); onAddAccount?.(); }}
-                className="flex w-full items-center gap-2 rounded-card px-3 py-2 text-sm text-aiAccent hover:bg-white/5"
+                className="flex w-full items-center gap-2 rounded-card px-3 py-2 text-sm text-aiAccent hover:bg-aiAccentSoft"
               >
                 <Plus className="h-4 w-4" />
                 Add account
@@ -96,15 +96,15 @@ function SwitcherItem({
         role="option"
         aria-selected={active}
         className={cn(
-          "flex w-full items-center gap-3 rounded-card px-3 py-2 text-left transition-colors hover:bg-white/5",
-          active && "bg-white/5",
+          "flex w-full items-center gap-3 rounded-card px-3 py-2 text-left transition-colors hover:bg-aiAccentSoft",
+          active && "bg-aiAccentSoft",
         )}
       >
         <span
           aria-hidden
           className={cn(
             "h-2 w-2 shrink-0 rounded-full transition-colors",
-            active ? "bg-aiAccent shadow-[0_0_8px_-1px_#d4ff3a]" : "bg-white/10",
+            active ? "bg-aiAccent shadow-[0_0_8px_-1px_#0066ff]" : "bg-cardBorder",
           )}
         />
         <span className="flex min-w-0 flex-col">

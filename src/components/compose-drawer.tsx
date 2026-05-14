@@ -82,7 +82,7 @@ export function ComposeDrawer({ open, onOpenChange, initial }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center"
+          className="fixed inset-0 z-50 bg-textPrimary/40 backdrop-blur-sm flex items-end sm:items-center justify-center"
           onClick={() => onOpenChange(false)}
         >
           <motion.div
@@ -90,7 +90,7 @@ export function ComposeDrawer({ open, onOpenChange, initial }: Props) {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            className="bg-canvas border border-cardBorder rounded-t-drawer sm:rounded-drawer w-full sm:max-w-2xl p-6 space-y-4"
+            className="bg-canvasSecondary border border-cardBorder rounded-t-drawer sm:rounded-drawer w-full sm:max-w-2xl p-6 space-y-4 shadow-cardHover"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-labelledby="compose-title"
@@ -111,7 +111,7 @@ export function ComposeDrawer({ open, onOpenChange, initial }: Props) {
                   id="from"
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
-                  className="w-full bg-card border border-cardBorder rounded-card px-3 py-2 text-sm text-textPrimary"
+                  className="w-full bg-canvasSecondary border border-cardBorder rounded-card px-3 py-2 text-sm text-textPrimary focus:outline-none focus:border-aiAccent focus:ring-1 focus:ring-aiAccent/30"
                 >
                   <option value="">Select an account…</option>
                   {accounts?.map((a) => (
@@ -136,7 +136,7 @@ export function ComposeDrawer({ open, onOpenChange, initial }: Props) {
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   rows={8}
-                  className="w-full bg-card border border-cardBorder rounded-card p-3 text-sm text-textPrimary placeholder:text-textDim resize-none focus:outline-none focus:border-aiAccent/60"
+                  className="w-full bg-canvasSecondary border border-cardBorder rounded-card p-3 text-sm text-textPrimary placeholder:text-textDim resize-none focus:outline-none focus:border-aiAccent focus:ring-1 focus:ring-aiAccent/30"
                   placeholder="Write your message…"
                 />
               </div>

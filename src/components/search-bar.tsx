@@ -13,7 +13,7 @@ export function SearchBar({ value, onChange }: Props) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search inbox…  e.g. bucket:needs_reply from:sarah"
-        className="pl-9 pr-9 bg-card border-cardBorder"
+        className="pl-9 pr-9 shadow-card"
         aria-label="Search messages"
       />
       {value && (

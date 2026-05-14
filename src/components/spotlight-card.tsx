@@ -26,7 +26,7 @@ export function SpotlightCard({ children, className, radius = 220 }: SpotlightCa
     mouseY.set(e.clientY - rect.top);
   }
 
-  const maskImage = useMotionTemplate`radial-gradient(${radius}px circle at ${mouseX}px ${mouseY}px, rgba(212, 255, 58, 0.18), transparent 70%)`;
+  const maskImage = useMotionTemplate`radial-gradient(${radius}px circle at ${mouseX}px ${mouseY}px, rgba(0, 102, 255, 0.12), transparent 70%)`;
 
   return (
     <div
