@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom property registration for animatable conic-gradient angle.
-   Supported in Chromium/Safari; Firefox falls back to a static border. */
 @property --conic-angle {
   syntax: "<angle>";
   inherits: false;
@@ -12,103 +10,107 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
-    --grain-opacity: 0.025;
+    color-scheme: light;
   }
 
-  html, body {
-    background: #0a0e1c;
-    color: #f5f7fa;
+  html,
+  body {
+    background: #f7f9fc;
+    color: #0a0e1c;
     font-family: var(--font-geist), system-ui, sans-serif;
-    font-feature-settings: "ss01", "ss02", "cv01", "cv11";
+    font-feature-settings: "ss01", "cv01";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Aurora — fixed background, subtly layered */
+  /* Subtle aurora — light blue / pink wash */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
-    z-index: -2;
-    background:
-      radial-gradient(ellipse 80% 60% at 80% 0%, rgba(212, 255, 58, 0.08), transparent 60%),
-      radial-gradient(ellipse 70% 50% at 0% 100%, rgba(125, 211, 252, 0.05), transparent 60%),
-      radial-gradient(circle at 50% 50%, rgba(251, 191, 119, 0.02), transparent 70%);
-    pointer-events: none;
-  }
-
-  /* Grain — kills the flatness of the dark surface */
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
     z-index: -1;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: var(--grain-opacity);
+    background:
+      radial-gradient(ellipse 70% 50% at 90% 0%, rgba(0, 102, 255, 0.05), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 10% 100%, rgba(236, 72, 153, 0.03), transparent 60%);
     pointer-events: none;
-    mix-blend-mode: overlay;
   }
 
-  /* Selection */
   ::selection {
-    background: rgba(212, 255, 58, 0.25);
-    color: #f5f7fa;
+    background: rgba(0, 102, 255, 0.18);
+    color: #0a0e1c;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(212, 255, 58, 0.2); }
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.2);
+    border-radius: 6px;
+    border: 2px solid #f7f9fc;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 102, 255, 0.35);
+  }
 
-  /* View Transitions — Chrome/Edge/Safari. Firefox falls back to instant nav. */
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* View transitions — Chrome/Edge/Safari */
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation-duration: 280ms;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
   ::view-transition-old(root) {
-    animation-name: view-fade-out;
+    animation-name: vt-out;
   }
   ::view-transition-new(root) {
-    animation-name: view-fade-in;
+    animation-name: vt-in;
   }
-  @keyframes view-fade-out {
-    to { opacity: 0; transform: translateY(-4px); }
+  @keyframes vt-out {
+    to {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
   }
-  @keyframes view-fade-in {
-    from { opacity: 0; transform: translateY(8px); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    ::view-transition-old(root),
-    ::view-transition-new(root) {
-      animation: none;
+  @keyframes vt-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
     }
   }
 }
 
 @layer components {
-  /* Reusable glass card — multi-layer depth */
   .glass-card {
-    background: rgba(255, 255, 255, 0.035);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow:
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
-      0 1px 2px 0 rgba(0, 0, 0, 0.25);
-    transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-                background 200ms cubic-bezier(0.4, 0, 0.2, 1),
-                transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(10, 14, 28, 0.04);
+    transition:
+      box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 200ms,
+      transform 200ms;
   }
   .glass-card:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(212, 255, 58, 0.25);
+    box-shadow:
+      0 8px 24px rgba(10, 14, 28, 0.08),
+      0 0 0 1px rgba(0, 102, 255, 0.15);
+    border-color: rgba(0, 102, 255, 0.2);
   }
 
-  /* Section divider — editorial style */
+  /* Section divider — editorial rule */
   .section-rule {
     display: flex;
     align-items: center;
@@ -119,10 +121,46 @@
     content: "";
     flex: 1;
     height: 1px;
-    background: linear-gradient(to right, rgba(255,255,255,0.08), transparent);
+    background: linear-gradient(
+      to right,
+      rgba(148, 163, 184, 0.4),
+      transparent
+    );
+  }
+
+  /* Shimmer skeleton */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: #f1f5f9;
+  }
+  .skeleton-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(0, 102, 255, 0.08),
+      transparent
+    );
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
   }
 
   /* Conic-rotating accent border around verified state panel */
+  @keyframes conic-rotate {
+    to {
+      --conic-angle: 360deg;
+    }
+  }
   .conic-border {
     position: relative;
     isolation: isolate;
@@ -134,9 +172,9 @@
     z-index: -1;
     border-radius: inherit;
     background: conic-gradient(
-      from var(--conic-angle, 0deg),
+      from var(--conic-angle),
       transparent 0deg,
-      rgba(212, 255, 58, 0.5) 60deg,
+      rgba(0, 102, 255, 0.5) 60deg,
       transparent 120deg,
       transparent 360deg
     );
@@ -148,10 +186,7 @@
     inset: 0;
     z-index: -1;
     border-radius: inherit;
-    background: #0a0e1c;
-  }
-  @keyframes conic-rotate {
-    to { --conic-angle: 360deg; }
+    background: #ffffff;
   }
   @media (prefers-reduced-motion: reduce) {
     .conic-border::before {
@@ -159,33 +194,47 @@
     }
   }
 
-  /* Shimmer skeleton — chartreuse sweep over a faint canvas */
-  .skeleton-shimmer {
-    position: relative;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.04);
+  /* Sidebar nav item */
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #475569;
+    font-size: 14px;
+    transition:
+      background 150ms,
+      color 150ms;
+    cursor: pointer;
+    user-select: none;
   }
-  .skeleton-shimmer::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(212, 255, 58, 0.08) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.8s ease-in-out infinite;
+  .sidebar-item:hover {
+    background: rgba(0, 102, 255, 0.06);
+    color: #0a0e1c;
   }
-  @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+  .sidebar-item:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #0066ff;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .skeleton-shimmer::after {
-      animation: none;
-      opacity: 0.4;
-      transform: none;
-    }
+  .sidebar-item[data-active="true"] {
+    background: #e6efff;
+    color: #0066ff;
+    font-weight: 500;
+  }
+  .sidebar-item[data-active="true"] .sidebar-count {
+    background: #0066ff;
+    color: #ffffff;
+  }
+  .sidebar-count {
+    margin-left: auto;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 999px;
+    min-width: 22px;
+    text-align: center;
   }
 }
