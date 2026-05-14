@@ -15,6 +15,7 @@ import { useAccounts } from "@/hooks/use-accounts";
 import { useSettings } from "@/hooks/use-settings";
 import { TriageCard } from "@/components/triage-card";
 import { SpotlightCard } from "@/components/spotlight-card";
+import { AnimatedCounter } from "@/components/animated-counter";
 import { useMagnetic } from "@/hooks/use-magnetic";
 import type { Bucket } from "@/lib/types/message";
 
@@ -304,7 +305,7 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
                       aria-hidden
                     />
                   )}
-                  {b.messages.length}
+                  <AnimatedCounter value={b.messages.length} />
                 </span>
               </div>
               <div className="space-y-2">
