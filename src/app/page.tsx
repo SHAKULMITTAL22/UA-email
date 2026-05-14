@@ -8,6 +8,7 @@ import { AccountSwitcher } from "@/components/account-switcher";
 import { TriagedInboxView } from "@/components/triaged-inbox-view";
 import { ComposeDrawer } from "@/components/compose-drawer";
 import { SearchBar } from "@/components/search-bar";
+import { AddAccountDialog } from "@/components/add-account-dialog";
 import { Button } from "@/components/ui/button";
 import { addAccount } from "@/lib/accounts/account-store";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ import { toast } from "sonner";
 export default function HomePage() {
   const [activeAccountId, setActiveAccountId] = useState<string | "unified">("unified");
   const [composeOpen, setComposeOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
@@ -23,7 +25,11 @@ export default function HomePage() {
         <AuthCallback />
       </Suspense>
       <div className="flex items-center justify-between">
-        <AccountSwitcher activeAccountId={activeAccountId} onChange={setActiveAccountId} />
+        <AccountSwitcher
+          activeAccountId={activeAccountId}
+          onChange={setActiveAccountId}
+          onAddAccount={() => setAddOpen(true)}
+        />
         <div className="flex items-center gap-2">
           <Button onClick={() => setComposeOpen(true)} size="sm">
             <Pencil className="h-3.5 w-3.5 mr-1.5" />
@@ -40,7 +46,12 @@ export default function HomePage() {
       </div>
       <SearchBar value={searchQuery} onChange={setSearchQuery} />
       <ComposeDrawer open={composeOpen} onOpenChange={setComposeOpen} />
-      <TriagedInboxView activeAccountId={activeAccountId} searchQuery={searchQuery} />
+      <AddAccountDialog open={addOpen} onOpenChange={setAddOpen} />
+      <TriagedInboxView
+        activeAccountId={activeAccountId}
+        searchQuery={searchQuery}
+        onAddAccount={() => setAddOpen(true)}
+      />
     </main>
   );
 }

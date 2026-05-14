@@ -1,8 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, Inbox as InboxIcon, AlertCircle } from "lucide-react";
+import { Sparkles, AlertCircle, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion as motionTokens } from "@/styles/motion-tokens";
 import { useSync } from "@/hooks/use-sync";
@@ -20,7 +22,13 @@ const BUCKET_META: Record<Bucket | "unclassified", { label: string; color: strin
   unclassified:{ label: "Unclassified", color: "text-textMuted", tag: "muted" },
 };
 
-export function TriagedInboxView({ activeAccountId, searchQuery = "" }: { activeAccountId?: string | "unified"; searchQuery?: string }) {
+interface TriagedInboxViewProps {
+  activeAccountId?: string | "unified";
+  searchQuery?: string;
+  onAddAccount?: () => void;
+}
+
+export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccount }: TriagedInboxViewProps) {
   const accounts = useAccounts();
   const triaged = useTriagedInbox(activeAccountId);
   const { settings } = useSettings();
@@ -82,6 +90,51 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "" }: { active
         </div>
       ) : null}
 
+      {noAccounts && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="rounded-card border border-cardBorder bg-gradient-to-br from-card via-card to-aiAccent/5 p-8 sm:p-12 text-center space-y-6"
+          role="status"
+        >
+          <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-aiAccent/15 border border-aiAccent/30">
+            <Sparkles className="h-6 w-6 text-aiAccent" aria-hidden />
+          </div>
+          <div className="space-y-2">
+            <h2 className="font-display text-2xl sm:text-3xl text-textPrimary">Your inbox, triaged in 5 seconds.</h2>
+            <p className="text-sm text-textMuted max-w-md mx-auto leading-relaxed">
+              Connect any email account and watch AI sort today's mail into{" "}
+              <span className="text-bucket-needsReply">Needs reply</span>,{" "}
+              <span className="text-bucket-fyi">FYI</span>,{" "}
+              <span className="text-bucket-newsletter">Newsletters</span>, and{" "}
+              <span className="text-bucket-noise">Noise</span> — with one-line summaries and pre-drafted replies on every important thread.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+            <Button onClick={() => onAddAccount?.()} className="min-w-[180px]">
+              <Plus className="h-4 w-4 mr-1.5" />
+              Add an account
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const { loadDemoInbox } = await import("@/lib/demo/load-demo");
+                await loadDemoInbox();
+                toast.success("Demo inbox loaded — 12 triaged emails ready");
+              }}
+              className="min-w-[180px]"
+            >
+              <Sparkles className="h-4 w-4 mr-1.5 text-aiAccent" />
+              Try demo inbox
+            </Button>
+          </div>
+          <p className="text-xs text-textDim">
+            IMAP works for Gmail / Outlook / Yahoo / AOL with an app password. Or load the demo above — no setup, no keys.
+          </p>
+        </motion.div>
+      )}
+
       <div className="space-y-6">
         {filtered?.map((b, i) => {
           const meta = BUCKET_META[b.bucket];
@@ -121,14 +174,6 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "" }: { active
         )}
       </div>
 
-      {noAccounts && (
-        <div className="rounded-card border border-cardBorder bg-card p-6 text-center" role="status">
-          <InboxIcon className="h-8 w-8 text-aiAccent mx-auto mb-2" aria-hidden />
-          <p className="text-sm text-textMuted">
-            No accounts yet — click <strong>Unified Inbox</strong> in the header, then <strong>Add account</strong>.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

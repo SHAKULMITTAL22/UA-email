@@ -1,30 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Inbox, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { listAccounts } from "@/lib/accounts/account-store";
-import { AddAccountDialog } from "@/components/add-account-dialog";
-import type { Account } from "@/lib/types/account";
+import { useAccounts } from "@/hooks/use-accounts";
 
 interface Props {
   activeAccountId?: string | "unified";
   onChange?: (id: string | "unified") => void;
+  onAddAccount?: () => void;
 }
 
-export function AccountSwitcher({ activeAccountId = "unified", onChange }: Props) {
+export function AccountSwitcher({ activeAccountId = "unified", onChange, onAddAccount }: Props) {
   const [open, setOpen] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
-  const [accounts, setAccounts] = useState<Account[]>([]);
-
-  async function refresh() {
-    if (typeof indexedDB === "undefined") return;
-    setAccounts(await listAccounts());
-  }
-
-  useEffect(() => { refresh(); }, []);
+  const accounts = useAccounts() ?? [];
 
   const active =
     activeAccountId === "unified"
@@ -71,7 +62,7 @@ export function AccountSwitcher({ activeAccountId = "unified", onChange }: Props
             ))}
             <li className="mt-1 border-t border-cardBorder pt-1">
               <button
-                onClick={() => { setOpen(false); setAddOpen(true); }}
+                onClick={() => { setOpen(false); onAddAccount?.(); }}
                 className="flex w-full items-center gap-2 rounded-card px-3 py-2 text-sm text-aiAccent hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
@@ -81,12 +72,6 @@ export function AccountSwitcher({ activeAccountId = "unified", onChange }: Props
           </motion.ul>
         )}
       </div>
-
-      <AddAccountDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        onAccountAdded={refresh}
-      />
     </>
   );
 }
