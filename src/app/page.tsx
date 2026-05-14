@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Pencil } from "lucide-react";
+import Link from "next/link";
+import { Pencil, Settings } from "lucide-react";
 import { AccountSwitcher } from "@/components/account-switcher";
 import { TriagedInboxView } from "@/components/triaged-inbox-view";
 import { ComposeDrawer } from "@/components/compose-drawer";
@@ -23,10 +24,19 @@ export default function HomePage() {
       </Suspense>
       <div className="flex items-center justify-between">
         <AccountSwitcher activeAccountId={activeAccountId} onChange={setActiveAccountId} />
-        <Button onClick={() => setComposeOpen(true)} size="sm">
-          <Pencil className="h-3.5 w-3.5 mr-1.5" />
-          Compose
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setComposeOpen(true)} size="sm">
+            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+            Compose
+          </Button>
+          <Link
+            href="/settings"
+            aria-label="Settings"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-textPrimary hover:bg-white/[0.04] transition-colors"
+          >
+            <Settings className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
       <SearchBar value={searchQuery} onChange={setSearchQuery} />
       <ComposeDrawer open={composeOpen} onOpenChange={setComposeOpen} />
