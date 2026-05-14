@@ -12,11 +12,18 @@ export interface SyncResult {
   errorReason?: string;
 }
 
+// Demo account id is a sentinel — its messages are seeded locally;
+// no remote IMAP server exists to connect to.
+const DEMO_ACCOUNT_ID = "demo-account";
+
 /**
  * Fetch the latest page for one account, diff against IndexedDB, return the
  * new messages so the caller can ship them to the AI batcher.
  */
 export async function syncAccount(account: Account, limit = 50): Promise<SyncResult> {
+  if (account.id === DEMO_ACCOUNT_ID) {
+    return { accountId: account.id, fetched: 0, newMessages: [], errored: false };
+  }
   const db = getDB();
   try {
     const provider = makeProvider(account);
