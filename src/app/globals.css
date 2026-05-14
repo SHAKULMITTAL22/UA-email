@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom property registration for animatable conic-gradient angle.
+   Supported in Chromium/Safari; Firefox falls back to a static border. */
+@property --conic-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @layer base {
   :root {
     color-scheme: dark;
@@ -53,6 +61,31 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(212, 255, 58, 0.2); }
+
+  /* View Transitions — Chrome/Edge/Safari. Firefox falls back to instant nav. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 280ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  ::view-transition-old(root) {
+    animation-name: view-fade-out;
+  }
+  ::view-transition-new(root) {
+    animation-name: view-fade-in;
+  }
+  @keyframes view-fade-out {
+    to { opacity: 0; transform: translateY(-4px); }
+  }
+  @keyframes view-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+    }
+  }
 }
 
 @layer components {
@@ -87,6 +120,43 @@
     flex: 1;
     height: 1px;
     background: linear-gradient(to right, rgba(255,255,255,0.08), transparent);
+  }
+
+  /* Conic-rotating accent border around verified state panel */
+  .conic-border {
+    position: relative;
+    isolation: isolate;
+  }
+  .conic-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--conic-angle, 0deg),
+      transparent 0deg,
+      rgba(212, 255, 58, 0.5) 60deg,
+      transparent 120deg,
+      transparent 360deg
+    );
+    animation: conic-rotate 4s linear infinite;
+  }
+  .conic-border::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: #0a0e1c;
+  }
+  @keyframes conic-rotate {
+    to { --conic-angle: 360deg; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .conic-border::before {
+      animation: none;
+    }
   }
 
   /* Shimmer skeleton — chartreuse sweep over a faint canvas */

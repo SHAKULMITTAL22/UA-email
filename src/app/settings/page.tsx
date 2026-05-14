@@ -194,7 +194,7 @@ export default function SettingsPage() {
       {/* Hero status panel — the visual centerpiece of the page.
           Verified state takes the prize spot. */}
       {testResult?.ok || verifiedForCurrent ? (
-        <div className="glass-card relative overflow-hidden rounded-card border-aiAccentBorder p-5">
+        <div className="conic-border glass-card relative overflow-hidden rounded-card border-aiAccentBorder p-5">
           <div
             aria-hidden
             className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-aiAccent/10 blur-3xl"

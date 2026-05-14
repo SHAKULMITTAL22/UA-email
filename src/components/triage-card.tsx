@@ -1,7 +1,7 @@
 "use client";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Sparkles, Archive, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion as motionTokens } from "@/styles/motion-tokens";
@@ -9,6 +9,10 @@ import type { MessageRow } from "@/lib/db/schema";
 import type { Bucket } from "@/lib/types/message";
 import { archiveMessage, deleteMessage } from "@/lib/actions/message-actions";
 import { toast } from "sonner";
+
+type DocWithViewTransition = Document & {
+  startViewTransition?: (cb: () => void) => unknown;
+};
 
 interface Props { message: MessageRow }
 
@@ -21,9 +25,32 @@ const STRIPE_COLOR: Record<Bucket | "unclassified", string> = {
 };
 
 export function TriageCard({ message }: Props) {
+  const router = useRouter();
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-150, 0, 150], [0.4, 1, 0.4]);
   const [pending, setPending] = useState<"archive" | "delete" | null>(null);
+  const href = `/thread/${encodeURIComponent(message.threadId)}`;
+
+  function navigate(e: React.MouseEvent<HTMLAnchorElement>) {
+    // Preserve modifier-click / right-click / middle-click default behavior.
+    if (
+      e.defaultPrevented ||
+      e.button !== 0 ||
+      e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.altKey
+    ) {
+      return;
+    }
+    e.preventDefault();
+    const doc = typeof document !== "undefined" ? (document as DocWithViewTransition) : null;
+    if (doc?.startViewTransition) {
+      doc.startViewTransition(() => router.push(href));
+    } else {
+      router.push(href);
+    }
+  }
 
   async function handleArchive() {
     setPending("archive");
@@ -81,8 +108,9 @@ export function TriageCard({ message }: Props) {
           : {})}
         className={cn("rounded-card", aiThinking && "ring-1 ring-aiAccent/20")}
       >
-        <Link
-          href={`/thread/${encodeURIComponent(message.threadId)}`}
+        <a
+          href={href}
+          onClick={navigate}
           className={cn(
             "glass-card relative block overflow-hidden rounded-card p-4 pl-5",
             "hover:shadow-[0_4px_24px_-8px_rgba(212,255,58,0.18)]",
@@ -158,7 +186,7 @@ export function TriageCard({ message }: Props) {
               )}
             </div>
           )}
-        </Link>
+        </a>
       </motion.div>
 
       {pending === "archive" && (
