@@ -14,15 +14,19 @@ type DocWithViewTransition = Document & {
   startViewTransition?: (cb: () => void) => unknown;
 };
 
-interface Props { message: MessageRow }
+interface Props {
+  message: MessageRow;
+}
 
 const STRIPE_COLOR: Record<Bucket | "unclassified", string> = {
-  needs_reply: "#d4ff3a",
-  fyi: "#7dd3fc",
-  newsletter: "#fbbf77",
-  noise: "#94a3b8",
-  unclassified: "rgba(255,255,255,0.18)",
+  needs_reply: "#0066ff",
+  fyi: "#0891b2",
+  newsletter: "#ea580c",
+  noise: "#64748b",
+  unclassified: "#cbd5e1",
 };
+
+const LABEL_PILL = "rounded-full border border-aiAccentBorder bg-aiAccentSoft px-2 py-0.5 text-[10px] font-medium tracking-wide text-aiAccentDeep";
 
 export function TriageCard({ message }: Props) {
   const router = useRouter();
@@ -32,7 +36,6 @@ export function TriageCard({ message }: Props) {
   const href = `/thread/${encodeURIComponent(message.threadId)}`;
 
   function navigate(e: React.MouseEvent<HTMLAnchorElement>) {
-    // Preserve modifier-click / right-click / middle-click default behavior.
     if (
       e.defaultPrevented ||
       e.button !== 0 ||
@@ -44,7 +47,8 @@ export function TriageCard({ message }: Props) {
       return;
     }
     e.preventDefault();
-    const doc = typeof document !== "undefined" ? (document as DocWithViewTransition) : null;
+    const doc =
+      typeof document !== "undefined" ? (document as DocWithViewTransition) : null;
     if (doc?.startViewTransition) {
       doc.startViewTransition(() => router.push(href));
     } else {
@@ -58,7 +62,9 @@ export function TriageCard({ message }: Props) {
       await archiveMessage(message);
       toast.success("Archived");
     } catch (e) {
-      toast.error("Archive failed: " + (e instanceof Error ? e.message : "unknown"));
+      toast.error(
+        "Archive failed: " + (e instanceof Error ? e.message : "unknown"),
+      );
       setPending(null);
     }
   }
@@ -69,13 +75,16 @@ export function TriageCard({ message }: Props) {
       await deleteMessage(message);
       toast.success("Deleted");
     } catch (e) {
-      toast.error("Delete failed: " + (e instanceof Error ? e.message : "unknown"));
+      toast.error(
+        "Delete failed: " + (e instanceof Error ? e.message : "unknown"),
+      );
       setPending(null);
     }
   }
 
   const aiThinking = !message.bucket;
   const stripeColor = STRIPE_COLOR[message.bucket ?? "unclassified"];
+  const unread = message.flags.unread;
 
   return (
     <motion.div
@@ -88,20 +97,24 @@ export function TriageCard({ message }: Props) {
         if (info.offset.x < -120) void handleArchive();
         else if (info.offset.x > 120) void handleDelete();
       }}
-      initial={{ opacity: 0, scale: 0.96 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={motionTokens.springCard}
       className="relative group"
-      whileHover={{ y: -1 }}
+      whileHover={{ y: -1, scale: 1.005 }}
     >
       <motion.div
         {...(aiThinking
           ? {
               animate: { backgroundPosition: ["0% 0%", "100% 0%"] },
-              transition: { duration: 2.2, repeat: Infinity, ease: "linear" as const },
+              transition: {
+                duration: 2.2,
+                repeat: Infinity,
+                ease: "linear" as const,
+              },
               style: {
                 backgroundImage:
-                  "linear-gradient(90deg, transparent 0%, rgba(212,255,58,0.10) 50%, transparent 100%)",
+                  "linear-gradient(90deg, transparent 0%, rgba(0,102,255,0.10) 50%, transparent 100%)",
                 backgroundSize: "200% 100%",
               },
             }
@@ -112,20 +125,19 @@ export function TriageCard({ message }: Props) {
           href={href}
           onClick={navigate}
           className={cn(
-            "glass-card relative block overflow-hidden rounded-card p-4 pl-5",
-            "hover:shadow-[0_4px_24px_-8px_rgba(212,255,58,0.18)]",
+            "relative block overflow-hidden rounded-card border border-cardBorder bg-card p-4 pl-5 shadow-card transition-all duration-200",
+            "hover:shadow-cardHover hover:border-aiAccent/30",
             pending && "opacity-50 pointer-events-none",
           )}
           aria-label={`${message.bucket ?? "unclassified"}: ${message.subject} from ${message.from.email}`}
         >
-          {/* Bucket accent stripe — hairline along the left edge */}
+          {/* Bucket accent stripe — 3px along the left edge */}
           <span
             aria-hidden
-            className="absolute left-0 top-0 h-full w-1"
+            className="absolute left-0 top-0 h-full w-[3px] rounded-l-card"
             style={{
               background: stripeColor,
-              boxShadow: `0 0 12px -2px ${stripeColor}`,
-              opacity: aiThinking ? 0.35 : 0.9,
+              opacity: aiThinking ? 0.35 : 1,
             }}
           />
 
@@ -133,29 +145,35 @@ export function TriageCard({ message }: Props) {
             <span
               className={cn(
                 "truncate text-sm",
-                message.flags.unread
+                unread
                   ? "font-semibold text-textPrimary"
-                  : "font-normal text-textMuted",
+                  : "font-normal text-textSecondary",
               )}
             >
               {message.from.name ?? message.from.email}
+              {unread && (
+                <span
+                  aria-hidden
+                  className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-aiAccent align-middle"
+                />
+              )}
             </span>
-            <span className="ml-auto shrink-0 rounded-full bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-textDim">
+            <span className="ml-auto shrink-0 font-mono text-[11px] text-textDim">
               {formatTime(message.receivedAt)}
             </span>
           </div>
           <h3
             className={cn(
               "mt-1 text-base leading-tight",
-              message.flags.unread
+              unread
                 ? "font-semibold text-textPrimary"
-                : "text-textMuted",
+                : "text-textSecondary",
             )}
           >
             {message.subject}
           </h3>
           {message.bucket ? (
-            <p className="mt-2 flex items-start gap-1.5 font-display text-[13px] italic leading-snug text-textMuted">
+            <p className="mt-2 flex items-start gap-1.5 font-display text-[13px] italic leading-snug text-aiAccentDeep">
               <Sparkles
                 className="mt-0.5 h-4 w-4 flex-shrink-0 text-aiAccent"
                 aria-hidden
@@ -163,7 +181,7 @@ export function TriageCard({ message }: Props) {
               <span>{message.snippet || "(no summary yet)"}</span>
             </p>
           ) : (
-            <p className="mt-2 flex items-center gap-1.5 font-display text-[13px] italic text-textDim">
+            <p className="mt-2 flex items-center gap-1.5 font-display text-[13px] italic text-textMuted">
               <Sparkles
                 className="h-4 w-4 flex-shrink-0 animate-pulse text-aiAccent"
                 aria-hidden
@@ -172,17 +190,16 @@ export function TriageCard({ message }: Props) {
             </p>
           )}
           {message.labels.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
+            <div className="mt-2.5 flex flex-wrap gap-1">
               {message.labels.slice(0, 3).map((l) => (
-                <span
-                  key={l}
-                  className="rounded border border-aiAccentBorder bg-aiAccentSoft px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-aiAccent"
-                >
+                <span key={l} className={LABEL_PILL}>
                   {l}
                 </span>
               ))}
               {message.labels.length > 3 && (
-                <span className="text-[10px] text-textDim">+{message.labels.length - 3}</span>
+                <span className="text-[10px] text-textDim">
+                  +{message.labels.length - 3}
+                </span>
               )}
             </div>
           )}
@@ -196,7 +213,7 @@ export function TriageCard({ message }: Props) {
       )}
       {pending === "delete" && (
         <div className="absolute inset-0 flex items-center justify-start pl-6 pointer-events-none">
-          <Trash2 className="h-5 w-5 text-red-400" />
+          <Trash2 className="h-5 w-5 text-error" />
         </div>
       )}
     </motion.div>
@@ -207,6 +224,7 @@ function formatTime(ts: number): string {
   const d = new Date(ts);
   const now = new Date();
   const sameDay = d.toDateString() === now.toDateString();
-  if (sameDay) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (sameDay)
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
