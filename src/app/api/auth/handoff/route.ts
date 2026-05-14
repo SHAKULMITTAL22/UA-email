@@ -1,35 +1,40 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { getToken } from "next-auth/jwt";
+import { env } from "@/lib/env";
+
+export const runtime = "nodejs";
 
 /**
  * Browser calls this once after OAuth completes. The route reads the
- * Auth.js session, returns the access/refresh tokens to the browser,
- * then clears the session cookie. After this call the server holds nothing.
- *
- * Phase-1 STUB: returns 501 until provider-agent wires real session token
- * extraction in the per-provider implementation phase.
+ * Auth.js JWT, returns the access/refresh tokens to the browser, then
+ * clears the session cookies. After this call the server holds nothing.
  */
-export async function POST() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+export async function POST(req: Request) {
+  if (!env.AUTH_SECRET) {
+    return NextResponse.json({ error: "auth_not_configured" }, { status: 501 });
   }
+  const token = await getToken({
+    req: req as unknown as Parameters<typeof getToken>[0]["req"],
+    secret: env.AUTH_SECRET,
+  });
+  if (!token) return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
 
-  // STUB: real token extraction lands with provider-agent in Phase 2.
-  // The Auth.js session itself doesn't expose tokens by default — we use
-  // a custom JWT callback to surface them safely.
+  const payload = {
+    provider: token.providerId,
+    email: token.email,
+    accessToken: (token as { accessToken?: string }).accessToken,
+    refreshToken: (token as { refreshToken?: string }).refreshToken,
+    expiresAt: (token as { expiresAt?: number }).expiresAt,
+    scope: (token as { scope?: string }).scope,
+  };
 
   const c = await cookies();
-  // Clear all auth cookies so server holds nothing.
   for (const cookie of c.getAll()) {
     if (cookie.name.startsWith("authjs.") || cookie.name.startsWith("__Secure-authjs.")) {
       c.delete(cookie.name);
     }
   }
 
-  return NextResponse.json(
-    { error: "stub_not_implemented", message: "Handoff implementation lands in provider-agent phase." },
-    { status: 501 },
-  );
+  return NextResponse.json(payload);
 }

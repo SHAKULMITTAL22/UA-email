@@ -3,6 +3,13 @@ import Google from "next-auth/providers/google";
 import Microsoft from "next-auth/providers/microsoft-entra-id";
 import { env } from "@/lib/env";
 
+declare module "next-auth" {
+  interface Session {
+    user: { providerId?: string } & DefaultSession["user"];
+    handoffReady?: boolean;
+  }
+}
+
 const providers = [];
 
 if (env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET) {
@@ -40,26 +47,24 @@ if (env.AUTH_MICROSOFT_ID && env.AUTH_MICROSOFT_SECRET) {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
   trustHost: true,
+  session: { strategy: "jwt" },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, profile }) {
       if (account) {
         token.providerId = account.provider;
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
+        token.scope = account.scope;
       }
+      if (profile?.email) token.email = profile.email;
       return token;
     },
     async session({ session, token }) {
-      // Tokens are NOT exposed via session — they're fetched via /api/auth/handoff
-      session.user = { ...session.user, providerId: token.providerId as string };
+      const providerId = (token as { providerId?: string }).providerId;
+      session.user = { ...session.user, ...(providerId ? { providerId } : {}) };
+      session.handoffReady = !!(token as { accessToken?: string }).accessToken;
       return session;
     },
   },
 });
-
-declare module "next-auth" {
-  interface Session {
-    user: { providerId?: string } & DefaultSession["user"];
-  }
-}

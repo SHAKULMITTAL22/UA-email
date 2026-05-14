@@ -19,6 +19,7 @@ import { presetForEmail } from "@/lib/accounts/imap-server-presets";
 import { toast } from "sonner";
 import { ImapProvider } from "@/lib/providers/imap/imap-provider";
 import type { Account } from "@/lib/types/account";
+import { signIn } from "next-auth/react";
 
 interface Props {
   open: boolean;
@@ -96,18 +97,16 @@ export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: Props) 
             <Button
               variant="outline"
               className="w-full justify-start"
-              disabled
-              title="Coming in Phase 2.2"
+              onClick={() => signIn("google", { callbackUrl: "/?auth=callback" })}
             >
-              <Mail className="mr-2 h-4 w-4" /> Sign in with Google (coming soon)
+              <Mail className="mr-2 h-4 w-4 text-aiAccent" /> Sign in with Google
             </Button>
             <Button
               variant="outline"
               className="w-full justify-start"
-              disabled
-              title="Coming in Phase 2.2"
+              onClick={() => signIn("microsoft-entra-id", { callbackUrl: "/?auth=callback" })}
             >
-              <Mail className="mr-2 h-4 w-4" /> Sign in with Microsoft (coming soon)
+              <Mail className="mr-2 h-4 w-4 text-aiAccent" /> Sign in with Microsoft
             </Button>
             <Separator className="my-3" />
             <Button
