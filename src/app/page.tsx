@@ -1,11 +1,27 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AccountSwitcher } from "@/components/account-switcher";
 import { TriagedInboxView } from "@/components/triaged-inbox-view";
 import { addAccount } from "@/lib/accounts/account-store";
 import { toast } from "sonner";
+
+export default function HomePage() {
+  const [activeAccountId, setActiveAccountId] = useState<string | "unified">("unified");
+
+  return (
+    <main className="space-y-8">
+      <Suspense fallback={null}>
+        <AuthCallback />
+      </Suspense>
+      <div className="flex items-center justify-between">
+        <AccountSwitcher activeAccountId={activeAccountId} onChange={setActiveAccountId} />
+      </div>
+      <TriagedInboxView activeAccountId={activeAccountId} />
+    </main>
+  );
+}
 
 function AuthCallback() {
   const params = useSearchParams();
@@ -47,18 +63,4 @@ function AuthCallback() {
   }, [params]);
 
   return null;
-}
-
-export default function HomePage() {
-  return (
-    <main className="space-y-8">
-      <Suspense fallback={null}>
-        <AuthCallback />
-      </Suspense>
-      <div className="flex items-center justify-between">
-        <AccountSwitcher />
-      </div>
-      <TriagedInboxView loading />
-    </main>
-  );
 }
