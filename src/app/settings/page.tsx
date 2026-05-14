@@ -112,49 +112,66 @@ export default function SettingsPage() {
 
       <section className="space-y-3">
         <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— AI provider</h2>
+
+        <div className="rounded-card border border-aiAccent/30 bg-aiAccent/[0.05] p-3 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-textMuted">Currently active:</span>
+            <span className="font-medium text-aiAccent">
+              {settings.llmProvider === "anthropic" && "Anthropic Claude"}
+              {settings.llmProvider === "openai" && "OpenAI"}
+              {settings.llmProvider === "gemini" && "Google Gemini"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between mt-1">
+            <span className="text-textMuted">API key:</span>
+            <span className={settings.byok[settings.llmProvider] ? "text-green-400" : "text-amber-400"}>
+              {settings.byok[settings.llmProvider]
+                ? `set (${(settings.byok[settings.llmProvider] ?? "").length} chars)`
+                : "not set — sync will fail"}
+            </span>
+          </div>
+        </div>
+
         <div className="space-y-2">
-          <Label htmlFor="llmProvider">Default LLM</Label>
+          <Label htmlFor="llmProvider">Active LLM</Label>
           <select
             id="llmProvider"
             value={settings.llmProvider}
             onChange={(e) => void update({ llmProvider: e.target.value as AppSettingsProvider })}
             className="w-full bg-card border border-cardBorder rounded-card px-3 py-2 text-sm text-textPrimary"
           >
-            <option value="anthropic">Anthropic Claude (default — with prompt caching)</option>
+            <option value="anthropic">Anthropic Claude (with prompt caching)</option>
             <option value="openai">OpenAI</option>
             <option value="gemini">Google Gemini</option>
           </select>
         </div>
 
+        {/* Only the active provider's BYOK shows — eliminates the "wrong field" confusion */}
         <div className="space-y-2">
-          <Label htmlFor="anthropic-byok">Anthropic API key (optional — BYOK)</Label>
+          <Label htmlFor="active-byok">
+            {settings.llmProvider === "anthropic" && "Anthropic API key"}
+            {settings.llmProvider === "openai" && "OpenAI API key"}
+            {settings.llmProvider === "gemini" && "Google Gemini API key"}
+          </Label>
           <Input
-            id="anthropic-byok"
+            id="active-byok"
             type="password"
-            placeholder="sk-ant-..."
-            value={settings.byok.anthropic ?? ""}
-            onChange={(e) => void update({ byok: { ...settings.byok, anthropic: e.target.value } })}
+            placeholder={
+              settings.llmProvider === "anthropic"
+                ? "sk-ant-..."
+                : settings.llmProvider === "openai"
+                  ? "sk-..."
+                  : "AIza..."
+            }
+            value={settings.byok[settings.llmProvider] ?? ""}
+            onChange={(e) =>
+              void update({
+                byok: { ...settings.byok, [settings.llmProvider]: e.target.value },
+              })
+            }
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="openai-byok">OpenAI API key (BYOK)</Label>
-          <Input
-            id="openai-byok"
-            type="password"
-            placeholder="sk-..."
-            value={settings.byok.openai ?? ""}
-            onChange={(e) => void update({ byok: { ...settings.byok, openai: e.target.value } })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="gemini-byok">Gemini API key (BYOK)</Label>
-          <Input
-            id="gemini-byok"
-            type="password"
-            value={settings.byok.gemini ?? ""}
-            onChange={(e) => void update({ byok: { ...settings.byok, gemini: e.target.value } })}
-          />
-        </div>
+
         <p className="text-xs text-textMuted italic">
           Keys stay in your browser. Sent to /api/ai/* on each request, never persisted server-side.
         </p>
