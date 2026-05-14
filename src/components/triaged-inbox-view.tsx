@@ -112,6 +112,22 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
         </div>
       ) : null}
 
+      {sync?.aiError ? (
+        <div className="flex items-start gap-2 rounded-card border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200" role="alert">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="font-medium">AI triage failed ({sync.aiError.cause}).</div>
+            <p className="mt-1 text-xs text-amber-200/80">{sync.aiError.message}</p>
+            <p className="mt-1 text-xs text-amber-200/70">
+              {sync.aiError.cause === "auth" && "Check your API key in Settings."}
+              {sync.aiError.cause === "rate_limit" && "Quota hit. Try a different LLM provider in Settings."}
+              {sync.aiError.cause === "schema" && "The model returned malformed JSON. Try a different model."}
+              {sync.aiError.cause === "network" && "Provider is unreachable. Will retry next tick."}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {noAccounts && (
         <motion.div
           initial={{ y: 12 }}

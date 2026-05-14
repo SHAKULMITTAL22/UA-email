@@ -1,6 +1,7 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Sparkles } from "lucide-react";
+import { ChevronLeft, Sparkles, RotateCw } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/hooks/use-settings";
 import { useAccounts } from "@/hooks/use-accounts";
 import { removeAccount } from "@/lib/accounts/account-store";
+import { retriageAll } from "@/lib/sync/sync-loop";
 import { toast } from "sonner";
 
 type AppSettingsProvider = "anthropic" | "openai" | "gemini";
@@ -15,6 +17,29 @@ type AppSettingsProvider = "anthropic" | "openai" | "gemini";
 export default function SettingsPage() {
   const { settings, update } = useSettings();
   const accounts = useAccounts();
+  const [retriaging, setRetriaging] = useState(false);
+
+  async function handleRetriageAll() {
+    setRetriaging(true);
+    try {
+      const byok = settings.byok[settings.llmProvider];
+      const result = await retriageAll({
+        provider: settings.llmProvider,
+        ...(byok ? { byok } : {}),
+      });
+      if (result.aiError) {
+        toast.error(`AI failed (${result.aiError.cause}): ${result.aiError.message}`);
+      } else if (result.totalUnclassified === 0) {
+        toast.success("Nothing to re-triage — every message is already classified.");
+      } else {
+        toast.success(`Re-triaged ${result.processed} of ${result.totalUnclassified} messages.`);
+      }
+    } catch (e) {
+      toast.error(`Re-triage failed: ${e instanceof Error ? e.message : "unknown"}`);
+    } finally {
+      setRetriaging(false);
+    }
+  }
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -49,6 +74,36 @@ export default function SettingsPage() {
             }}
           >
             Clear demo
+          </Button>
+        </div>
+      </section>
+
+      <section className="space-y-3 rounded-card border border-cardBorder bg-card p-4">
+        <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— Re-triage your inbox</h2>
+        <p className="text-sm text-textMuted">
+          Process every unclassified message in your real accounts in one pass. Use this after fixing an API key or switching LLM providers.
+        </p>
+        <div className="flex gap-2 flex-wrap">
+          <Button onClick={handleRetriageAll} disabled={retriaging}>
+            <RotateCw className={`h-3.5 w-3.5 mr-1.5 ${retriaging ? "animate-spin" : ""}`} />
+            {retriaging ? "Re-triaging…" : "Re-triage all unclassified"}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (const r of regs) await r.unregister();
+                if (typeof caches !== "undefined") {
+                  const keys = await caches.keys();
+                  await Promise.all(keys.map((k) => caches.delete(k)));
+                }
+                toast.success("Cache cleared. Reloading…");
+                setTimeout(() => location.reload(), 500);
+              }
+            }}
+          >
+            Force update (clears cache)
           </Button>
         </div>
       </section>

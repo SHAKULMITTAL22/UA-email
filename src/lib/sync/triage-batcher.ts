@@ -9,10 +9,17 @@ export interface TriageBatchOptions {
   byok?: string;
 }
 
+export interface TriageBatchResult {
+  processed: number;
+  cacheHitRate: number;
+  lastErrorMessage?: string;
+  lastErrorCause?: "auth" | "rate_limit" | "schema" | "network" | "validation_failed" | "unknown";
+}
+
 export async function triageNewMessages(
   newMessages: Message[],
   opts: TriageBatchOptions = {},
-): Promise<{ processed: number; cacheHitRate: number }> {
+): Promise<TriageBatchResult> {
   if (newMessages.length === 0) return { processed: 0, cacheHitRate: 0 };
 
   const db = getDB();
@@ -23,6 +30,8 @@ export async function triageNewMessages(
 
   let processed = 0;
   let lastHitRate = 0;
+  let lastErrorMessage: string | undefined;
+  let lastErrorCause: TriageBatchResult["lastErrorCause"];
 
   for (const batch of batches) {
     const payload = {
@@ -44,10 +53,14 @@ export async function triageNewMessages(
     });
 
     if (!res.ok) {
-      // Soft fail: log + continue. Messages stay unbucketed; inbox falls back
-      // to chronological per spec section 10 principle #5.
-      console.warn("[triage-batcher] AI call failed", await res.text());
-      continue;
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+      };
+      lastErrorMessage = body.message ?? body.error ?? `HTTP ${res.status}`;
+      lastErrorCause = (body.error as TriageBatchResult["lastErrorCause"]) ?? "unknown";
+      console.warn("[triage-batcher] AI call failed", body);
+      break;
     }
 
     const data = (await res.json()) as {
@@ -74,5 +87,10 @@ export async function triageNewMessages(
     processed += data.results.length;
   }
 
-  return { processed, cacheHitRate: lastHitRate };
+  return {
+    processed,
+    cacheHitRate: lastHitRate,
+    ...(lastErrorMessage ? { lastErrorMessage } : {}),
+    ...(lastErrorCause ? { lastErrorCause } : {}),
+  };
 }

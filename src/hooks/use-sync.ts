@@ -6,6 +6,7 @@ interface TickInfo {
   processed: number;
   cacheHitRate: number;
   errors: string[];
+  aiError?: { message: string; cause: string };
   lastAt: number;
 }
 
@@ -24,8 +25,19 @@ export function useSync(opts: UseSyncOptions = {}): TickInfo | null {
       ...(opts.intervalSec ? { intervalSec: opts.intervalSec } : {}),
       ...(opts.provider ? { provider: opts.provider } : {}),
       ...(opts.byok ? { byok: opts.byok } : {}),
-      onTick: (t: { processed: number; cacheHitRate: number; errors: string[] }) =>
-        setInfo({ ...t, lastAt: Date.now() }),
+      onTick: (t: {
+        processed: number;
+        cacheHitRate: number;
+        errors: string[];
+        aiError?: { message: string; cause: string };
+      }) =>
+        setInfo({
+          processed: t.processed,
+          cacheHitRate: t.cacheHitRate,
+          errors: t.errors,
+          ...(t.aiError ? { aiError: t.aiError } : {}),
+          lastAt: Date.now(),
+        }),
     };
     const stop = startSyncLoop(loopOpts);
 
