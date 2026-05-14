@@ -114,9 +114,9 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
 
       {noAccounts && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          initial={{ y: 12 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.3 }}
           className="rounded-card border border-cardBorder bg-gradient-to-br from-card via-card to-aiAccent/5 p-8 sm:p-12 text-center space-y-6"
           role="status"
         >
@@ -124,9 +124,9 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
             <Sparkles className="h-6 w-6 text-aiAccent" aria-hidden />
           </div>
           <div className="space-y-2">
-            <h2 className="font-display text-2xl sm:text-3xl text-textPrimary">Your inbox, triaged in 5 seconds.</h2>
+            <h2 className="font-display text-2xl sm:text-3xl text-textPrimary">Triage your inbox in 5 seconds.</h2>
             <p className="text-sm text-textMuted max-w-md mx-auto leading-relaxed">
-              Connect any email account and watch AI sort today's mail into{" "}
+              Connect any email account and watch AI sort today&apos;s mail into{" "}
               <span className="text-bucket-needsReply">Needs reply</span>,{" "}
               <span className="text-bucket-fyi">FYI</span>,{" "}
               <span className="text-bucket-newsletter">Newsletters</span>, and{" "}
