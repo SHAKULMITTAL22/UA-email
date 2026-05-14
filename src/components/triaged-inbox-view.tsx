@@ -16,12 +16,40 @@ import { useSettings } from "@/hooks/use-settings";
 import { TriageCard } from "@/components/triage-card";
 import type { Bucket } from "@/lib/types/message";
 
-const BUCKET_META: Record<Bucket | "unclassified", { label: string; color: string; tag: string }> = {
-  needs_reply: { label: "Needs reply", color: "text-bucket-needsReply", tag: "needsReply" },
-  fyi:         { label: "FYI", color: "text-bucket-fyi", tag: "fyi" },
-  newsletter:  { label: "Newsletters", color: "text-bucket-newsletter", tag: "newsletter" },
-  noise:       { label: "Noise", color: "text-bucket-noise", tag: "noise" },
-  unclassified:{ label: "Unclassified", color: "text-textMuted", tag: "muted" },
+const BUCKET_META: Record<
+  Bucket | "unclassified",
+  { label: string; textColor: string; bgColor: string; borderColor: string }
+> = {
+  needs_reply: {
+    label: "Needs reply",
+    textColor: "text-bucket-needsReply",
+    bgColor: "bg-bucket-needsReply/15",
+    borderColor: "border-bucket-needsReply/30",
+  },
+  fyi: {
+    label: "FYI",
+    textColor: "text-bucket-fyi",
+    bgColor: "bg-bucket-fyi/15",
+    borderColor: "border-bucket-fyi/30",
+  },
+  newsletter: {
+    label: "Newsletters",
+    textColor: "text-bucket-newsletter",
+    bgColor: "bg-bucket-newsletter/15",
+    borderColor: "border-bucket-newsletter/30",
+  },
+  noise: {
+    label: "Noise",
+    textColor: "text-bucket-noise",
+    bgColor: "bg-bucket-noise/20",
+    borderColor: "border-bucket-noise/30",
+  },
+  unclassified: {
+    label: "Unclassified",
+    textColor: "text-textMuted",
+    bgColor: "bg-white/[0.04]",
+    borderColor: "border-cardBorder",
+  },
 };
 
 interface TriagedInboxViewProps {
@@ -114,24 +142,32 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
   }
 
   return (
-    <div className="space-y-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-3xl text-textPrimary">Your inbox, triaged</h1>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-textMuted">
-            <Sparkles
-              className={cn("h-3.5 w-3.5 text-aiAccent", syncing && "animate-pulse")}
-              aria-hidden
-            />
-            <span>
-              {noAccounts
-                ? "Add an account to begin."
-                : sync
-                  ? `Triaged ${sync.processed} new · cache hit ${(sync.cacheHitRate * 100).toFixed(0)}%`
-                  : "Syncing…"}
+    <div className="space-y-10">
+      <header className="flex flex-col gap-3">
+        <h1 className="font-display text-4xl leading-[1.05] tracking-tight text-textPrimary sm:text-5xl">
+          Your inbox,{" "}
+          <span className="italic text-aiAccent underline decoration-aiAccent decoration-2 underline-offset-[6px]">
+            triaged
+          </span>
+          .
+        </h1>
+        <p className="flex items-center gap-2 text-sm text-textMuted">
+          {syncing ? (
+            <span className="relative inline-flex h-2 w-2" aria-hidden>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-aiAccent opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-aiAccent" />
             </span>
-          </p>
-        </div>
+          ) : (
+            <Sparkles className="h-3.5 w-3.5 text-aiAccent" aria-hidden />
+          )}
+          <span>
+            {noAccounts
+              ? "Add an account to begin."
+              : sync
+                ? `Triaged ${sync.processed} new · cache hit ${(sync.cacheHitRate * 100).toFixed(0)}%`
+                : "Syncing your inbox…"}
+          </span>
+        </p>
       </header>
 
       {sync?.errors.length ? (
@@ -164,50 +200,62 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
 
       {noAccounts && (
         <motion.div
-          initial={{ y: 12 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="rounded-card border border-cardBorder bg-gradient-to-br from-card via-card to-aiAccent/5 p-8 sm:p-12 text-center space-y-6"
+          initial={{ y: 12, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: motionTokens.duration.dramatic, ease: motionTokens.ease.out }}
+          className="glass-card relative overflow-hidden rounded-card p-10 sm:p-14 text-center"
           role="status"
         >
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-aiAccent/15 border border-aiAccent/30">
-            <Sparkles className="h-6 w-6 text-aiAccent" aria-hidden />
-          </div>
-          <div className="space-y-2">
-            <h2 className="font-display text-2xl sm:text-3xl text-textPrimary">Triage your inbox in 5 seconds.</h2>
-            <p className="text-sm text-textMuted max-w-md mx-auto leading-relaxed">
-              Connect any email account and watch AI sort today&apos;s mail into{" "}
-              <span className="text-bucket-needsReply">Needs reply</span>,{" "}
-              <span className="text-bucket-fyi">FYI</span>,{" "}
-              <span className="text-bucket-newsletter">Newsletters</span>, and{" "}
-              <span className="text-bucket-noise">Noise</span> — with one-line summaries and pre-drafted replies on every important thread.
+          {/* Inner glow */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-56 w-2/3 rounded-full bg-aiAccent/10 blur-3xl"
+          />
+
+          <div className="relative space-y-8">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-aiAccentBorder bg-aiAccentSoft">
+              <Sparkles className="h-7 w-7 text-aiAccent" aria-hidden />
+            </div>
+            <div className="space-y-3">
+              <h2 className="font-display text-3xl leading-[1.05] text-textPrimary sm:text-4xl">
+                Your inbox,{" "}
+                <span className="italic text-aiAccent">triaged</span>{" "}
+                in five seconds.
+              </h2>
+              <p className="mx-auto max-w-md text-sm leading-relaxed text-textSecondary">
+                Connect any email account and watch AI sort today&apos;s mail into{" "}
+                <span className="text-bucket-needsReply">Needs reply</span>,{" "}
+                <span className="text-bucket-fyi">FYI</span>,{" "}
+                <span className="text-bucket-newsletter">Newsletters</span>, and{" "}
+                <span className="text-bucket-noise">Noise</span> — with one-line summaries and pre-drafted replies on every important thread.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-center">
+              <Button onClick={() => onAddAccount?.()} className="min-w-[180px]">
+                <Plus className="h-4 w-4 mr-1.5" />
+                Add an account
+              </Button>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const { loadDemoInbox } = await import("@/lib/demo/load-demo");
+                  await loadDemoInbox();
+                  toast.success("Demo inbox loaded — 12 triaged emails ready");
+                }}
+                className="min-w-[180px]"
+              >
+                <Sparkles className="h-4 w-4 mr-1.5 text-aiAccent" />
+                Try demo inbox
+              </Button>
+            </div>
+            <p className="text-xs text-textDim">
+              IMAP works for Gmail / Outlook / Yahoo / AOL with an app password. Or load the demo above — no setup, no keys.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
-            <Button onClick={() => onAddAccount?.()} className="min-w-[180px]">
-              <Plus className="h-4 w-4 mr-1.5" />
-              Add an account
-            </Button>
-            <Button
-              variant="outline"
-              onClick={async () => {
-                const { loadDemoInbox } = await import("@/lib/demo/load-demo");
-                await loadDemoInbox();
-                toast.success("Demo inbox loaded — 12 triaged emails ready");
-              }}
-              className="min-w-[180px]"
-            >
-              <Sparkles className="h-4 w-4 mr-1.5 text-aiAccent" />
-              Try demo inbox
-            </Button>
-          </div>
-          <p className="text-xs text-textDim">
-            IMAP works for Gmail / Outlook / Yahoo / AOL with an app password. Or load the demo above — no setup, no keys.
-          </p>
         </motion.div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {filtered?.map((b, i) => {
           const meta = BUCKET_META[b.bucket];
           if (b.bucket === "unclassified" && b.messages.length === 0) return null;
@@ -220,15 +268,31 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
               transition={{ duration: motionTokens.duration.base, delay: i * 0.04, ease: motionTokens.ease.out }}
               aria-labelledby={`bucket-${b.bucket}`}
             >
-              <div className="mb-2 flex items-baseline justify-between">
-                <h2 id={`bucket-${b.bucket}`} className={cn("text-xs uppercase tracking-[2px]", meta.color)}>
-                  {`— ${meta.label}`}
-                </h2>
-                <span className="flex items-baseline gap-1.5 text-xs text-textDim">
-                  {syncing && (
-                    <span className="text-aiAccent animate-pulse" aria-hidden>…</span>
+              <div className="section-rule">
+                <h2
+                  id={`bucket-${b.bucket}`}
+                  className={cn(
+                    "text-[11px] font-medium uppercase tracking-[2.5px]",
+                    meta.textColor,
                   )}
-                  <span>{b.messages.length}</span>
+                >
+                  {meta.label}
+                </h2>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10px]",
+                    meta.bgColor,
+                    meta.borderColor,
+                    meta.textColor,
+                  )}
+                >
+                  {syncing && (
+                    <span
+                      className="h-1 w-1 animate-pulse rounded-full bg-current"
+                      aria-hidden
+                    />
+                  )}
+                  {b.messages.length}
                 </span>
               </div>
               <div className="space-y-2">
@@ -248,7 +312,7 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
                         [b.bucket]: prev[b.bucket] + 25,
                       }))
                     }
-                    className="text-xs text-aiAccent hover:text-aiAccent/80 transition-colors w-full text-left pl-3 pt-1"
+                    className="w-full pl-3 pt-1 text-left text-xs text-aiAccent transition-colors hover:text-aiAccent/80"
                   >
                     Show {Math.min(25, b.messages.length - bucketLimits[b.bucket])} more (of {b.messages.length} total)
                   </button>
