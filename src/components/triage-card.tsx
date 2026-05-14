@@ -6,10 +6,19 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion as motionTokens } from "@/styles/motion-tokens";
 import type { MessageRow } from "@/lib/db/schema";
+import type { Bucket } from "@/lib/types/message";
 import { archiveMessage, deleteMessage } from "@/lib/actions/message-actions";
 import { toast } from "sonner";
 
 interface Props { message: MessageRow }
+
+const STRIPE_COLOR: Record<Bucket | "unclassified", string> = {
+  needs_reply: "#d4ff3a",
+  fyi: "#7dd3fc",
+  newsletter: "#fbbf77",
+  noise: "#64748b",
+  unclassified: "rgba(255,255,255,0.18)",
+};
 
 export function TriageCard({ message }: Props) {
   const x = useMotionValue(0);
@@ -39,6 +48,7 @@ export function TriageCard({ message }: Props) {
   }
 
   const aiThinking = !message.bucket;
+  const stripeColor = STRIPE_COLOR[message.bucket ?? "unclassified"];
 
   return (
     <motion.div
@@ -51,8 +61,11 @@ export function TriageCard({ message }: Props) {
         if (info.offset.x < -120) void handleArchive();
         else if (info.offset.x > 120) void handleDelete();
       }}
-      transition={motionTokens.springReflow}
-      className="relative"
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={motionTokens.springCard}
+      className="relative group"
+      whileHover={{ y: -1 }}
     >
       <motion.div
         {...(aiThinking
@@ -61,7 +74,7 @@ export function TriageCard({ message }: Props) {
               transition: { duration: 2.2, repeat: Infinity, ease: "linear" as const },
               style: {
                 backgroundImage:
-                  "linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.10) 50%, transparent 100%)",
+                  "linear-gradient(90deg, transparent 0%, rgba(212,255,58,0.10) 50%, transparent 100%)",
                 backgroundSize: "200% 100%",
               },
             }
@@ -71,28 +84,62 @@ export function TriageCard({ message }: Props) {
         <Link
           href={`/thread/${encodeURIComponent(message.threadId)}`}
           className={cn(
-            "block rounded-card border border-cardBorder bg-card backdrop-blur-card p-4 transition-colors hover:border-aiAccent/40",
+            "glass-card relative block overflow-hidden rounded-card p-4 pl-5",
+            "hover:shadow-[0_4px_24px_-8px_rgba(212,255,58,0.18)]",
             pending && "opacity-50 pointer-events-none",
           )}
           aria-label={`${message.bucket ?? "unclassified"}: ${message.subject} from ${message.from.email}`}
         >
+          {/* Bucket accent stripe — hairline along the left edge */}
+          <span
+            aria-hidden
+            className="absolute left-0 top-0 h-full w-1"
+            style={{
+              background: stripeColor,
+              boxShadow: `0 0 12px -2px ${stripeColor}`,
+              opacity: aiThinking ? 0.35 : 0.9,
+            }}
+          />
+
           <div className="flex items-baseline justify-between gap-3">
-            <span className={cn("font-medium text-sm truncate", message.flags.unread ? "text-textPrimary" : "text-textMuted")}>
+            <span
+              className={cn(
+                "truncate text-sm",
+                message.flags.unread
+                  ? "font-semibold text-textPrimary"
+                  : "font-normal text-textMuted",
+              )}
+            >
               {message.from.name ?? message.from.email}
             </span>
-            <span className="text-xs text-textDim font-mono">{formatTime(message.receivedAt)}</span>
+            <span className="ml-auto shrink-0 rounded-full bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-textDim">
+              {formatTime(message.receivedAt)}
+            </span>
           </div>
-          <h3 className={cn("mt-1 text-base leading-tight", message.flags.unread ? "font-semibold text-textPrimary" : "text-textMuted")}>
+          <h3
+            className={cn(
+              "mt-1 text-base leading-tight",
+              message.flags.unread
+                ? "font-semibold text-textPrimary"
+                : "text-textMuted",
+            )}
+          >
             {message.subject}
           </h3>
           {message.bucket ? (
-            <p className="mt-2 text-sm text-textMuted italic flex items-start gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-aiAccent mt-0.5 flex-shrink-0" aria-hidden />
+            <p className="mt-2 flex items-start gap-1.5 font-display text-[13px] italic leading-snug text-textMuted">
+              <Sparkles
+                className="mt-0.5 h-4 w-4 flex-shrink-0 text-aiAccent"
+                aria-hidden
+              />
               <span>{message.snippet || "(no summary yet)"}</span>
             </p>
           ) : (
-            <p className="mt-2 text-sm text-textDim italic flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-aiAccent flex-shrink-0 animate-pulse" aria-hidden />
+            <p className="mt-2 flex items-center gap-1.5 font-display text-[13px] italic text-textDim">
+              <Sparkles
+                className="h-4 w-4 flex-shrink-0 animate-pulse text-aiAccent"
+                aria-hidden
+              />
               <span>Triaging…</span>
             </p>
           )}
@@ -101,7 +148,7 @@ export function TriageCard({ message }: Props) {
               {message.labels.slice(0, 3).map((l) => (
                 <span
                   key={l}
-                  className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-aiAccent/10 text-aiAccent border border-aiAccent/20"
+                  className="rounded border border-aiAccentBorder bg-aiAccentSoft px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-aiAccent"
                 >
                   {l}
                 </span>
