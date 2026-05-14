@@ -47,7 +47,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
           <Link
             href="/"
-            aria-label="UA Email home"
             className="mb-6 inline-flex outline-none focus-visible:ring-2 focus-visible:ring-aiAccent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas rounded-sm"
           >
             <Wordmark size="sm" />

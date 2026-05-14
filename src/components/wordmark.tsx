@@ -24,6 +24,7 @@ export function Wordmark({ size = "md", className }: WordmarkProps) {
         sizeClass,
         className,
       )}
+      role="img"
       aria-label="UA Email"
     >
       {LETTERS.map((char, i) => {
