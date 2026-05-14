@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, AlertCircle, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { AppLoader } from "@/components/app-loader";
 import { cn } from "@/lib/utils";
 import { motion as motionTokens } from "@/styles/motion-tokens";
 import { useSync } from "@/hooks/use-sync";
@@ -39,7 +41,20 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
     ...(byokKey ? { byok: byokKey } : {}),
   });
 
+  const accountsLoading = accounts === undefined;
   const noAccounts = (accounts?.length ?? 0) === 0;
+  const hasAccounts = !accountsLoading && !noAccounts;
+  const syncing = hasAccounts && (!sync || sync.processed === 0);
+
+  const lastToastedAt = useRef<number>(0);
+  useEffect(() => {
+    if (!sync || sync.processed === 0) return;
+    if (sync.lastAt === lastToastedAt.current) return;
+    lastToastedAt.current = sync.lastAt;
+    toast.success(
+      `Triaged ${sync.processed} message${sync.processed === 1 ? "" : "s"} · cache hit ${(sync.cacheHitRate * 100).toFixed(0)}%`,
+    );
+  }, [sync]);
 
   const filtered = (() => {
     if (!triaged || !searchQuery.trim()) return triaged;
@@ -60,13 +75,20 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
     }));
   })();
 
+  if (accountsLoading) {
+    return <AppLoader />;
+  }
+
   return (
     <div className="space-y-8">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-3xl text-textPrimary">Your inbox, triaged</h1>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-textMuted">
-            <Sparkles className={cn("h-3.5 w-3.5 text-aiAccent", sync && sync.processed > 0 && "animate-pulse")} aria-hidden />
+            <Sparkles
+              className={cn("h-3.5 w-3.5 text-aiAccent", syncing && "animate-pulse")}
+              aria-hidden
+            />
             <span>
               {noAccounts
                 ? "Add an account to begin."
@@ -152,7 +174,12 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
                 <h2 id={`bucket-${b.bucket}`} className={cn("text-xs uppercase tracking-[2px]", meta.color)}>
                   {`— ${meta.label}`}
                 </h2>
-                <span className="text-xs text-textDim">{b.messages.length}</span>
+                <span className="flex items-baseline gap-1.5 text-xs text-textDim">
+                  {syncing && (
+                    <span className="text-aiAccent animate-pulse" aria-hidden>…</span>
+                  )}
+                  <span>{b.messages.length}</span>
+                </span>
               </div>
               <div className="space-y-2">
                 <AnimatePresence initial={false}>

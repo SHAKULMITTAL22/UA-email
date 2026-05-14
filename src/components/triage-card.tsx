@@ -38,6 +38,8 @@ export function TriageCard({ message }: Props) {
     }
   }
 
+  const aiThinking = !message.bucket;
+
   return (
     <motion.div
       layout
@@ -52,30 +54,50 @@ export function TriageCard({ message }: Props) {
       transition={motionTokens.springReflow}
       className="relative"
     >
-      <Link
-        href={`/thread/${encodeURIComponent(message.threadId)}`}
-        className={cn(
-          "block rounded-card border border-cardBorder bg-card backdrop-blur-card p-4 transition-colors hover:border-aiAccent/40",
-          pending && "opacity-50 pointer-events-none",
-        )}
-        aria-label={`${message.bucket ?? "unclassified"}: ${message.subject} from ${message.from.email}`}
+      <motion.div
+        {...(aiThinking
+          ? {
+              animate: { backgroundPosition: ["0% 0%", "100% 0%"] },
+              transition: { duration: 2.2, repeat: Infinity, ease: "linear" as const },
+              style: {
+                backgroundImage:
+                  "linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.10) 50%, transparent 100%)",
+                backgroundSize: "200% 100%",
+              },
+            }
+          : {})}
+        className={cn("rounded-card", aiThinking && "ring-1 ring-aiAccent/20")}
       >
-        <div className="flex items-baseline justify-between gap-3">
-          <span className={cn("font-medium text-sm truncate", message.flags.unread ? "text-textPrimary" : "text-textMuted")}>
-            {message.from.name ?? message.from.email}
-          </span>
-          <span className="text-xs text-textDim font-mono">{formatTime(message.receivedAt)}</span>
-        </div>
-        <h3 className={cn("mt-1 text-base leading-tight", message.flags.unread ? "font-semibold text-textPrimary" : "text-textMuted")}>
-          {message.subject}
-        </h3>
-        {message.bucket && (
-          <p className="mt-2 text-sm text-textMuted italic flex items-start gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-aiAccent mt-0.5 flex-shrink-0" aria-hidden />
-            <span>{message.snippet || "(no summary yet)"}</span>
-          </p>
-        )}
-      </Link>
+        <Link
+          href={`/thread/${encodeURIComponent(message.threadId)}`}
+          className={cn(
+            "block rounded-card border border-cardBorder bg-card backdrop-blur-card p-4 transition-colors hover:border-aiAccent/40",
+            pending && "opacity-50 pointer-events-none",
+          )}
+          aria-label={`${message.bucket ?? "unclassified"}: ${message.subject} from ${message.from.email}`}
+        >
+          <div className="flex items-baseline justify-between gap-3">
+            <span className={cn("font-medium text-sm truncate", message.flags.unread ? "text-textPrimary" : "text-textMuted")}>
+              {message.from.name ?? message.from.email}
+            </span>
+            <span className="text-xs text-textDim font-mono">{formatTime(message.receivedAt)}</span>
+          </div>
+          <h3 className={cn("mt-1 text-base leading-tight", message.flags.unread ? "font-semibold text-textPrimary" : "text-textMuted")}>
+            {message.subject}
+          </h3>
+          {message.bucket ? (
+            <p className="mt-2 text-sm text-textMuted italic flex items-start gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-aiAccent mt-0.5 flex-shrink-0" aria-hidden />
+              <span>{message.snippet || "(no summary yet)"}</span>
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-textDim italic flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-aiAccent flex-shrink-0 animate-pulse" aria-hidden />
+              <span>Triaging…</span>
+            </p>
+          )}
+        </Link>
+      </motion.div>
 
       {pending === "archive" && (
         <div className="absolute inset-0 flex items-center justify-end pr-6 pointer-events-none">
