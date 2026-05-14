@@ -1,10 +1,18 @@
 import { test, expect } from "@playwright/test";
 
+async function openAddAccount(page: import("@playwright/test").Page) {
+  // On mobile (<1024px) the sidebar is behind a menu drawer. Open it first.
+  const viewport = page.viewportSize();
+  if (viewport && viewport.width < 1024) {
+    await page.getByRole("button", { name: /Open menu/i }).click();
+  }
+  await page.getByRole("button", { name: /Add account/i }).first().click();
+}
+
 test.describe("Add account flow", () => {
   test("can open Add Account dialog and see IMAP form", async ({ page }) => {
     await page.goto("/");
-    // With no accounts, the sidebar shows an inline "Add account" button.
-    await page.getByRole("button", { name: /Add account/i }).first().click();
+    await openAddAccount(page);
 
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByText(/Three ways in/i)).toBeVisible();
@@ -16,7 +24,7 @@ test.describe("Add account flow", () => {
 
   test("auto-detects gmail.com IMAP server preset", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /Add account/i }).first().click();
+    await openAddAccount(page);
     await page.getByRole("button", { name: /Connect via IMAP/i }).click();
 
     await page.getByLabel(/Email address/i).fill("test@gmail.com");

@@ -109,7 +109,7 @@ export function Sidebar({
       </Button>
 
       <nav className="space-y-1" aria-label="Filters">
-        <div className="px-3 pb-1 text-[10px] font-medium uppercase tracking-wider text-textDim">
+        <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-textMuted">
           Filters
         </div>
         {FILTER_ITEMS.map((item) => {
@@ -144,7 +144,7 @@ export function Sidebar({
 
       <nav className="space-y-1" aria-label="Accounts">
         <div className="flex items-center justify-between px-3 pb-1">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-textDim">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-textMuted">
             Accounts
           </span>
           {onAddAccount && (
@@ -198,7 +198,7 @@ export function Sidebar({
               onAddAccount();
               onMobileClose();
             }}
-            className="sidebar-item w-full text-aiAccent"
+            className="sidebar-item w-full !text-aiAccentDeep font-medium"
           >
             <Plus className="h-4 w-4" aria-hidden />
             <span>Add account</span>
@@ -222,7 +222,7 @@ export function Sidebar({
   return (
     <>
       <aside
-        className="hidden lg:flex lg:w-[260px] lg:flex-shrink-0 lg:flex-col lg:bg-canvasTinted/40 lg:border-r lg:border-cardBorder"
+        className="hidden lg:flex lg:w-[260px] lg:flex-shrink-0 lg:flex-col lg:bg-canvasSecondary lg:border-r lg:border-cardBorder"
         aria-label="Primary navigation"
       >
         {content}

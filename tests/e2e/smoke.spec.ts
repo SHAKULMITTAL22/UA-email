@@ -23,13 +23,19 @@ test.describe("home page foundation", () => {
 
   test("sidebar exposes filter buckets and account list", async ({ page }) => {
     await page.goto("/");
-    // Desktop sidebar is visible at >=1024px viewports
-    const sidebar = page.getByRole("navigation", { name: /Filters/i });
+
+    // On mobile the sidebar lives behind a hamburger menu.
+    const viewport = page.viewportSize();
+    if (viewport && viewport.width < 1024) {
+      await page.getByRole("button", { name: /Open menu/i }).click();
+    }
+
+    const sidebar = page.getByRole("navigation", { name: /Filters/i }).first();
     await expect(sidebar).toBeVisible();
     await expect(sidebar.getByRole("button", { name: /Unified Inbox/i })).toBeVisible();
     await expect(sidebar.getByRole("button", { name: /Needs reply/i })).toBeVisible();
 
-    const accountsNav = page.getByRole("navigation", { name: /Accounts/i });
+    const accountsNav = page.getByRole("navigation", { name: /Accounts/i }).first();
     await expect(accountsNav.getByRole("button", { name: /All accounts/i })).toBeVisible();
   });
 });

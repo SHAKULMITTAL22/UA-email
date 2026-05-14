@@ -219,11 +219,11 @@
   }
   .sidebar-item[data-active="true"] {
     background: #e6efff;
-    color: #0066ff;
-    font-weight: 500;
+    color: #0052cc;
+    font-weight: 600;
   }
   .sidebar-item[data-active="true"] .sidebar-count {
-    background: #0066ff;
+    background: #0052cc;
     color: #ffffff;
   }
   .sidebar-count {
