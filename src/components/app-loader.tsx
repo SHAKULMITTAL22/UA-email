@@ -1,5 +1,7 @@
 "use client";
 
+import { Wordmark } from "@/components/wordmark";
+
 export function AppLoader() {
   return (
     <div
@@ -7,10 +9,7 @@ export function AppLoader() {
       role="status"
       aria-label="Loading UA Email"
     >
-      <h1 className="font-display text-5xl leading-none tracking-tight text-textPrimary">
-        UA{" "}
-        <span className="italic text-aiAccent">Email</span>
-      </h1>
+      <Wordmark size="lg" />
       <div aria-hidden className="relative h-9 w-9">
         <span className="absolute inset-0 rounded-full border border-white/10" />
         <span
