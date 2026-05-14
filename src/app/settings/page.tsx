@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Sparkles } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,37 @@ export default function SettingsPage() {
       </Link>
 
       <h1 className="font-display text-3xl text-textPrimary">Settings</h1>
+
+      <section className="space-y-3 rounded-card border border-aiAccent/30 bg-aiAccent/[0.04] p-4">
+        <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— Try the demo</h2>
+        <p className="text-sm text-textMuted">
+          No accounts? No API keys? Load 12 realistic emails with pre-baked AI triage results to see UA-Email in action.
+        </p>
+        <div className="flex gap-2">
+          <Button
+            onClick={async () => {
+              const { loadDemoInbox } = await import("@/lib/demo/load-demo");
+              await loadDemoInbox();
+              toast.success("Demo inbox loaded — head back to home");
+            }}
+          >
+            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+            Load demo inbox
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              const { clearDemoInbox } = await import("@/lib/demo/load-demo");
+              await clearDemoInbox();
+              toast.success("Demo data cleared");
+            }}
+          >
+            Clear demo
+          </Button>
+        </div>
+      </section>
+
+      <Separator />
 
       <section className="space-y-3">
         <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— AI provider</h2>
