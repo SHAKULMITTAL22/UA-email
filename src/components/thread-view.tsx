@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Sparkles, Reply, Send, RotateCw, Forward } from "lucide-react";
+import { ChevronLeft, Sparkles, Reply, Send, RotateCw, Forward, Plus, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ComposeDrawer } from "@/components/compose-drawer";
 import { useThread } from "@/hooks/use-thread";
+import { applyLabel } from "@/lib/actions/label-actions";
 import { motion as motionTokens } from "@/styles/motion-tokens";
 
 export function ThreadView({ threadId }: { threadId: string }) {
@@ -80,6 +82,24 @@ export function ThreadView({ threadId }: { threadId: string }) {
         <p className="mt-1 text-sm text-textDim">
           {thread.messages.length} message{thread.messages.length === 1 ? "" : "s"} · {uniqueFroms}
         </p>
+        <div className="flex items-center flex-wrap gap-1.5 mt-2">
+          {lastMessage.labels.map((l) => (
+            <span
+              key={l}
+              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-aiAccent/10 text-aiAccent border border-aiAccent/20"
+            >
+              {l}
+              <button
+                onClick={() => void applyLabel(lastMessage, l, false)}
+                aria-label={`Remove label ${l}`}
+                className="hover:text-red-300"
+              >
+                <X className="h-2.5 w-2.5" />
+              </button>
+            </span>
+          ))}
+          <LabelAdder onAdd={(name) => void applyLabel(lastMessage, name, true)} />
+        </div>
       </header>
 
       <div className="space-y-3">
@@ -159,3 +179,56 @@ function ThreadSkeleton() {
     </div>
   );
 }
+
+function LabelAdder({ onAdd }: { onAdd: (name: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
+  function commit() {
+    const trimmed = value.trim();
+    if (trimmed) {
+      onAdd(trimmed);
+    }
+    setValue("");
+    setOpen(false);
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Add label"
+        className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border border-dashed border-aiAccent/30 text-aiAccent/80 hover:text-aiAccent hover:border-aiAccent/60"
+      >
+        <Plus className="h-2.5 w-2.5" /> label
+      </button>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+          } else if (e.key === "Escape") {
+            setValue("");
+            setOpen(false);
+          }
+        }}
+        autoFocus
+        placeholder="label name"
+        aria-label="New label name"
+        className="h-6 w-32 text-xs px-1.5"
+      />
+      <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={commit}>
+        Add
+      </Button>
+    </span>
+  );
+}
+

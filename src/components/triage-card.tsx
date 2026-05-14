@@ -96,6 +96,21 @@ export function TriageCard({ message }: Props) {
               <span>Triaging…</span>
             </p>
           )}
+          {message.labels.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {message.labels.slice(0, 3).map((l) => (
+                <span
+                  key={l}
+                  className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-aiAccent/10 text-aiAccent border border-aiAccent/20"
+                >
+                  {l}
+                </span>
+              ))}
+              {message.labels.length > 3 && (
+                <span className="text-[10px] text-textDim">+{message.labels.length - 3}</span>
+              )}
+            </div>
+          )}
         </Link>
       </motion.div>
 
