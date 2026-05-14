@@ -4,7 +4,7 @@ import withPWA from "@ducanh2912/next-pwa";
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: { typedRoutes: true },
+  typedRoutes: true,
 };
 
 export default withPWA({
