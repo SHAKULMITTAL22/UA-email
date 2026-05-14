@@ -21,10 +21,15 @@ test.describe("home page foundation", () => {
     expect(results.violations).toEqual([]);
   });
 
-  test("AccountSwitcher opens a listbox when clicked", async ({ page }) => {
+  test("sidebar exposes filter buckets and account list", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /Unified Inbox/i }).click();
-    await expect(page.getByRole("listbox")).toBeVisible();
-    await expect(page.getByRole("option", { name: /Unified Inbox/i })).toBeVisible();
+    // Desktop sidebar is visible at >=1024px viewports
+    const sidebar = page.getByRole("navigation", { name: /Filters/i });
+    await expect(sidebar).toBeVisible();
+    await expect(sidebar.getByRole("button", { name: /Unified Inbox/i })).toBeVisible();
+    await expect(sidebar.getByRole("button", { name: /Needs reply/i })).toBeVisible();
+
+    const accountsNav = page.getByRole("navigation", { name: /Accounts/i });
+    await expect(accountsNav.getByRole("button", { name: /All accounts/i })).toBeVisible();
   });
 });

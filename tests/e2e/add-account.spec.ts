@@ -3,8 +3,8 @@ import { test, expect } from "@playwright/test";
 test.describe("Add account flow", () => {
   test("can open Add Account dialog and see IMAP form", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /Unified Inbox/i }).click();
-    await page.getByRole("button", { name: /Add account/i }).click();
+    // With no accounts, the sidebar shows an inline "Add account" button.
+    await page.getByRole("button", { name: /Add account/i }).first().click();
 
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByText(/Three ways in/i)).toBeVisible();
@@ -16,8 +16,7 @@ test.describe("Add account flow", () => {
 
   test("auto-detects gmail.com IMAP server preset", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /Unified Inbox/i }).click();
-    await page.getByRole("button", { name: /Add account/i }).click();
+    await page.getByRole("button", { name: /Add account/i }).first().click();
     await page.getByRole("button", { name: /Connect via IMAP/i }).click();
 
     await page.getByLabel(/Email address/i).fill("test@gmail.com");

@@ -7,6 +7,7 @@ import { TriagedInboxView } from "@/components/triaged-inbox-view";
 import { ComposeDrawer } from "@/components/compose-drawer";
 import { AddAccountDialog } from "@/components/add-account-dialog";
 import { SearchBar } from "@/components/search-bar";
+import { CommandPalette } from "@/components/command-palette";
 import { addAccount } from "@/lib/accounts/account-store";
 import { toast } from "sonner";
 
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [composeOpen, setComposeOpen] = useState(false);
   const [addAccountOpen, setAddAccountOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   return (
     <>
@@ -33,7 +35,18 @@ export default function HomePage() {
         onAddAccount={() => setAddAccountOpen(true)}
       >
         <div className="space-y-6">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            </div>
+            <button
+              onClick={() => setPaletteOpen(true)}
+              aria-label="Open command palette"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-cardBorder bg-canvasSecondary px-2.5 py-1.5 text-[11px] font-medium text-textMuted shadow-card transition-colors hover:border-aiAccent/40 hover:text-aiAccentDeep"
+            >
+              <kbd className="font-mono">⌘K</kbd>
+            </button>
+          </div>
           <TriagedInboxView
             activeAccountId={activeAccountId}
             searchQuery={searchQuery}
@@ -44,6 +57,13 @@ export default function HomePage() {
       </AppShell>
       <ComposeDrawer open={composeOpen} onOpenChange={setComposeOpen} />
       <AddAccountDialog open={addAccountOpen} onOpenChange={setAddAccountOpen} />
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onFilterChange={setFilter}
+        onCompose={() => setComposeOpen(true)}
+        onAddAccount={() => setAddAccountOpen(true)}
+      />
     </>
   );
 }
