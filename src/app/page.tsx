@@ -2,13 +2,17 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Pencil } from "lucide-react";
 import { AccountSwitcher } from "@/components/account-switcher";
 import { TriagedInboxView } from "@/components/triaged-inbox-view";
+import { ComposeDrawer } from "@/components/compose-drawer";
+import { Button } from "@/components/ui/button";
 import { addAccount } from "@/lib/accounts/account-store";
 import { toast } from "sonner";
 
 export default function HomePage() {
   const [activeAccountId, setActiveAccountId] = useState<string | "unified">("unified");
+  const [composeOpen, setComposeOpen] = useState(false);
 
   return (
     <main className="space-y-8">
@@ -17,7 +21,12 @@ export default function HomePage() {
       </Suspense>
       <div className="flex items-center justify-between">
         <AccountSwitcher activeAccountId={activeAccountId} onChange={setActiveAccountId} />
+        <Button onClick={() => setComposeOpen(true)} size="sm">
+          <Pencil className="h-3.5 w-3.5 mr-1.5" />
+          Compose
+        </Button>
       </div>
+      <ComposeDrawer open={composeOpen} onOpenChange={setComposeOpen} />
       <TriagedInboxView activeAccountId={activeAccountId} />
     </main>
   );
