@@ -19,12 +19,31 @@ const BUCKET_META: Record<Bucket | "unclassified", { label: string; color: strin
   unclassified:{ label: "Unclassified", color: "text-textMuted", tag: "muted" },
 };
 
-export function TriagedInboxView({ activeAccountId }: { activeAccountId?: string | "unified" }) {
+export function TriagedInboxView({ activeAccountId, searchQuery = "" }: { activeAccountId?: string | "unified"; searchQuery?: string }) {
   const accounts = useAccounts();
   const triaged = useTriagedInbox(activeAccountId);
   const sync = useSync({ intervalSec: 60 });
 
   const noAccounts = (accounts?.length ?? 0) === 0;
+
+  const filtered = (() => {
+    if (!triaged || !searchQuery.trim()) return triaged;
+    const q = searchQuery.toLowerCase();
+    const bucketMatch = q.match(/bucket:(\S+)/);
+    const fromMatch = q.match(/from:(\S+)/);
+    const textQ = q.replace(/bucket:\S+/g, "").replace(/from:\S+/g, "").trim();
+    return triaged.map((b) => ({
+      bucket: b.bucket,
+      messages: b.messages.filter((m) =>
+        (!bucketMatch || m.bucket === bucketMatch[1]) &&
+        (!fromMatch || m.from.email.toLowerCase().includes(fromMatch[1]!)) &&
+        (!textQ ||
+          m.subject.toLowerCase().includes(textQ) ||
+          m.snippet.toLowerCase().includes(textQ) ||
+          m.body.toLowerCase().includes(textQ)),
+      ),
+    }));
+  })();
 
   return (
     <div className="space-y-8">
@@ -57,7 +76,7 @@ export function TriagedInboxView({ activeAccountId }: { activeAccountId?: string
       ) : null}
 
       <div className="space-y-6">
-        {triaged?.map((b, i) => {
+        {filtered?.map((b, i) => {
           const meta = BUCKET_META[b.bucket];
           if (b.bucket === "unclassified" && b.messages.length === 0) return null;
 

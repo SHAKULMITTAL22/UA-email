@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react";
 import { AccountSwitcher } from "@/components/account-switcher";
 import { TriagedInboxView } from "@/components/triaged-inbox-view";
 import { ComposeDrawer } from "@/components/compose-drawer";
+import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
 import { addAccount } from "@/lib/accounts/account-store";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 export default function HomePage() {
   const [activeAccountId, setActiveAccountId] = useState<string | "unified">("unified");
   const [composeOpen, setComposeOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <main className="space-y-8">
@@ -26,8 +28,9 @@ export default function HomePage() {
           Compose
         </Button>
       </div>
+      <SearchBar value={searchQuery} onChange={setSearchQuery} />
       <ComposeDrawer open={composeOpen} onOpenChange={setComposeOpen} />
-      <TriagedInboxView activeAccountId={activeAccountId} />
+      <TriagedInboxView activeAccountId={activeAccountId} searchQuery={searchQuery} />
     </main>
   );
 }
