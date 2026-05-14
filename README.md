@@ -1,6 +1,6 @@
 # UA Email · Universal AI-First Email Client
 
-> **Live demo:** <PASTE_VERCEL_URL_HERE>
+> **Live demo:** https://ua-email-pee0qzfyj-shakulmittal22s-projects.vercel.app/
 > **Status:** Phase 1 (Foundation) complete — Phase 2 (provider + AI + UI implementations) in progress.
 
 An AI-first, mobile-ready PWA that unifies Gmail, Office 365, and IMAP mail into a single inbox — with **batched AI triage** as the home screen, suggested replies, and a pluggable LLM layer (Anthropic, OpenAI, Gemini).
