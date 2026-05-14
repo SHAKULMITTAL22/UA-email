@@ -1,0 +1,73 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm build)",
+      "Bash(pnpm dlx:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git add:*)",
+      "Bash(git log:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git worktree:*)",
+      "Bash(vercel:*)",
+      "Bash(npx playwright:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard origin/*:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if git diff --cached --name-only 2>/dev/null | grep -E \"(^|/)\\.env(\\.|$)\" >/dev/null; then echo \"BLOCKED: .env file staged for commit\" >&2; exit 2; fi; exit 0'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=\"$CLAUDE_FILE_PATH\"; if [[ \"$f\" =~ \\.(ts|tsx|js|jsx|json|md|css)$ ]] && [[ -f \"$f\" ]]; then pnpm exec prettier --write \"$f\" 2>/dev/null || true; fi'"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'mkdir -p .superpowers && echo \"$(date -u +%FT%TZ) subagent-stop\" >> .superpowers/agent-log'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'mkdir -p .superpowers && echo \"$(date -u +%FT%TZ) session-stop\" >> .superpowers/agent-log'"
+          }
+        ]
+      }
+    ]
+  }
+}
