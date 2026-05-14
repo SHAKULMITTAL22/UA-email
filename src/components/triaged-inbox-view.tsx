@@ -8,6 +8,7 @@ import { motion as motionTokens } from "@/styles/motion-tokens";
 import { useSync } from "@/hooks/use-sync";
 import { useTriagedInbox } from "@/hooks/use-triaged-inbox";
 import { useAccounts } from "@/hooks/use-accounts";
+import { TriageCard } from "@/components/triage-card";
 import type { Bucket } from "@/lib/types/message";
 
 const BUCKET_META: Record<Bucket | "unclassified", { label: string; color: string; tag: string }> = {
@@ -77,28 +78,7 @@ export function TriagedInboxView({ activeAccountId }: { activeAccountId?: string
               <div className="space-y-2">
                 <AnimatePresence initial={false}>
                   {b.messages.slice(0, 10).map((m) => (
-                    <motion.article
-                      key={m.id}
-                      layout
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={motionTokens.springReflow}
-                      className="rounded-card border border-cardBorder bg-card backdrop-blur-card p-4"
-                      aria-label={`${meta.label}: ${m.subject} from ${m.from.email}`}
-                    >
-                      <div className="flex items-baseline justify-between gap-3">
-                        <span className="font-medium text-sm text-textPrimary truncate">{m.from.name ?? m.from.email}</span>
-                        <span className="text-xs text-textDim font-mono">{formatTime(m.receivedAt)}</span>
-                      </div>
-                      <h3 className="mt-1 text-base font-medium text-textPrimary leading-tight">{m.subject}</h3>
-                      {m.bucket && (
-                        <p className="mt-2 text-sm text-textMuted italic flex items-start gap-1.5">
-                          <Sparkles className="h-3.5 w-3.5 text-aiAccent mt-0.5 flex-shrink-0" aria-hidden />
-                          <span>{m.snippet || "(no summary yet)"}</span>
-                        </p>
-                      )}
-                    </motion.article>
+                    <TriageCard key={m.id} message={m} />
                   ))}
                 </AnimatePresence>
                 {b.messages.length === 0 && (
@@ -125,12 +105,4 @@ export function TriagedInboxView({ activeAccountId }: { activeAccountId?: string
       )}
     </div>
   );
-}
-
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  const now = new Date();
-  const sameDay = d.toDateString() === now.toDateString();
-  if (sameDay) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
