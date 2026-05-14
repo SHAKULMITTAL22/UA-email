@@ -8,11 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ComposeDrawer } from "@/components/compose-drawer";
 import { useThread } from "@/hooks/use-thread";
+import { useSettings } from "@/hooks/use-settings";
 import { applyLabel } from "@/lib/actions/label-actions";
 import { motion as motionTokens } from "@/styles/motion-tokens";
+import { toast } from "sonner";
 
 export function ThreadView({ threadId }: { threadId: string }) {
   const thread = useThread(threadId);
+  const { settings } = useSettings();
   const [drafting, setDrafting] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -34,10 +37,13 @@ export function ThreadView({ threadId }: { threadId: string }) {
       const threadPlaintext = thread.messages
         .map((m) => `From: ${m.from.name ?? m.from.email}\nSubject: ${m.subject}\n\n${m.body}`)
         .join("\n\n---\n\n");
+      const byok = settings.byok[settings.llmProvider];
       const res = await fetch("/api/ai/draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          provider: settings.llmProvider,
+          ...(byok ? { byok } : {}),
           email: {
             id: lastMessage.id,
             threadId: lastMessage.threadId,
@@ -47,9 +53,16 @@ export function ThreadView({ threadId }: { threadId: string }) {
           threadPlaintext,
         }),
       });
-      if (!res.ok) throw new Error("Draft regen failed");
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+        const reason = body.message ?? body.error ?? `HTTP ${res.status}`;
+        toast.error(`Draft regen failed (${body.error ?? "unknown"}): ${reason}`);
+        return;
+      }
       const data = await res.json();
       setDraft(data.draft);
+    } catch (e) {
+      toast.error(`Draft regen failed: ${e instanceof Error ? e.message : "unknown"}`);
     } finally {
       setDrafting(false);
     }
