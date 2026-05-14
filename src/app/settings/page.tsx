@@ -23,6 +23,14 @@ interface TestResult {
   errorMessage?: string;
 }
 
+function formatRelativeTime(ts: number): string {
+  const diff = Date.now() - ts;
+  if (diff < 60_000) return "just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
+}
+
 export default function SettingsPage() {
   const { settings, update } = useSettings();
   const accounts = useAccounts();
@@ -48,27 +56,32 @@ export default function SettingsPage() {
   })();
 
   async function saveAndVerify() {
-    setSaving(true);
-    setTestResult(null);
     const provider = settings.llmProvider;
     const byok = draftKey.trim();
-    const keyMasked = byok
-      ? `${byok.slice(0, 4)}…${byok.slice(-3)} (${byok.length} chars)`
-      : "(none — falls back to server env)";
 
-    // 1) Persist the key (or clear it)
+    // Client-side guard: don't even fire the request with empty key
+    if (!byok) {
+      toast.error("Paste your API key in the field above first.");
+      return;
+    }
+
+    setSaving(true);
+    setTestResult(null);
+    const keyMasked = `${byok.slice(0, 4)}…${byok.slice(-3)} (${byok.length} chars)`;
+
+    // 1) Persist the key
     await update({
-      byok: { ...settings.byok, [provider]: byok || undefined } as typeof settings.byok,
+      byok: { ...settings.byok, [provider]: byok } as typeof settings.byok,
     });
 
-    // 2) Hit the API with one tiny payload to verify
+    // 2) Hit the API to verify
     try {
       const res = await fetch("/api/ai/triage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          ...(byok ? { byok } : {}),
+          byok,
           emails: [
             {
               messageId: "test-ping",
@@ -100,6 +113,17 @@ export default function SettingsPage() {
         modelUsed: data.model,
         keyMasked,
       });
+
+      // 3) Persist the verified state so the green banner survives refresh
+      await update({
+        lastVerified: {
+          provider,
+          model: data.model,
+          keySuffix: byok.slice(-8),
+          at: Date.now(),
+        },
+      });
+
       toast.success(`Saved & verified · ${provider} (${data.model})`);
     } catch (e) {
       setTestResult({
@@ -113,6 +137,18 @@ export default function SettingsPage() {
       setSaving(false);
     }
   }
+
+  // Show the green banner on load if a verified state is persisted AND the
+  // current provider + key match what was verified. Avoids stale "verified"
+  // claims after the user changes provider or rotates the key.
+  const currentKey = settings.byok[settings.llmProvider];
+  const verifiedForCurrent =
+    settings.lastVerified &&
+    settings.lastVerified.provider === settings.llmProvider &&
+    currentKey &&
+    currentKey.endsWith(settings.lastVerified.keySuffix)
+      ? settings.lastVerified
+      : null;
 
   async function handleRetriageAll() {
     setRetriaging(true);
@@ -208,15 +244,18 @@ export default function SettingsPage() {
       <section className="space-y-3">
         <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— AI provider</h2>
 
-        {/* Big status banner — verified-good takes the prize spot when last test passed */}
-        {testResult?.ok ? (
+        {/* Big status banner — verified-good takes the prize spot when last test passed
+            OR when a persisted-verified state matches the current provider+key */}
+        {testResult?.ok || verifiedForCurrent ? (
           <div className="rounded-card border border-green-500/40 bg-green-500/10 p-4">
             <div className="flex items-center gap-2 mb-1">
               <CheckCircle2 className="h-5 w-5 text-green-400" />
               <span className="font-medium text-green-300">LLM configured correctly</span>
             </div>
             <div className="text-xs text-green-300/80 font-mono">
-              {testResult.providerSent} · {testResult.modelUsed} · key {testResult.keyMasked}
+              {testResult?.ok
+                ? `${testResult.providerSent} · ${testResult.modelUsed} · key ${testResult.keyMasked}`
+                : `${verifiedForCurrent!.provider} · ${verifiedForCurrent!.model} · verified ${formatRelativeTime(verifiedForCurrent!.at)}`}
             </div>
           </div>
         ) : (

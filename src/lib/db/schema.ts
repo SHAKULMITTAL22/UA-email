@@ -30,6 +30,14 @@ export interface AppSettings {
   };
   syncIntervalSec: number;
   hardenedMode: boolean;  // when true, tokens encrypted with passphrase
+  /** Persisted last-verified state so the green banner survives refresh. */
+  lastVerified?: {
+    provider: "anthropic" | "openai" | "gemini";
+    model: string;
+    /** Last 8 chars of the key used, for staleness check. */
+    keySuffix: string;
+    at: number;
+  };
 }
 
 export type Tables = {
