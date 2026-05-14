@@ -40,9 +40,24 @@ export async function syncAccount(account: Account, limit = 50): Promise<SyncRes
 
     const newMessages = messages.filter((m) => !existingIds.has(m.id));
 
-    if (messages.length > 0) {
-      const rows: MessageRow[] = messages.map((m) => ({ ...m }));
+    // CRITICAL: only put NEW rows. bulkPut overwrites entire rows including
+    // denormalized AI fields (bucket, aiProcessedAt, promptCacheHit). If we
+    // re-put existing messages from a fresh IMAP fetch, we'd wipe their
+    // classifications and force a re-triage on every refresh.
+    if (newMessages.length > 0) {
+      const rows: MessageRow[] = newMessages.map((m) => ({ ...m }));
       await db.messages.bulkPut(rows);
+    }
+
+    // For existing rows, only patch the flags field (read/unread/starred may
+    // have changed remotely). Never touch bucket/summary/aiProcessedAt.
+    const existingFresh = messages.filter((m) => existingIds.has(m.id));
+    if (existingFresh.length > 0) {
+      await db.transaction("rw", db.messages, async () => {
+        for (const m of existingFresh) {
+          await db.messages.update(m.id, { flags: m.flags });
+        }
+      });
     }
 
     await db.accounts.update(account.id, { lastSyncAt: Date.now() });

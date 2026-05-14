@@ -57,6 +57,13 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
   }, [sync]);
 
   const [loadingOlder, setLoadingOlder] = useState(false);
+  const [bucketLimits, setBucketLimits] = useState<Record<Bucket | "unclassified", number>>({
+    needs_reply: 10,
+    fyi: 10,
+    newsletter: 10,
+    noise: 10,
+    unclassified: 10,
+  });
   async function handleLoadOlder() {
     if (!accounts || accounts.length === 0) return;
     setLoadingOlder(true);
@@ -226,12 +233,25 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
               </div>
               <div className="space-y-2">
                 <AnimatePresence initial={false}>
-                  {b.messages.slice(0, 10).map((m) => (
+                  {b.messages.slice(0, bucketLimits[b.bucket]).map((m) => (
                     <TriageCard key={m.id} message={m} />
                   ))}
                 </AnimatePresence>
                 {b.messages.length === 0 && (
                   <p className="text-sm text-textMuted italic">Nothing in this bucket yet.</p>
+                )}
+                {b.messages.length > bucketLimits[b.bucket] && (
+                  <button
+                    onClick={() =>
+                      setBucketLimits((prev) => ({
+                        ...prev,
+                        [b.bucket]: prev[b.bucket] + 25,
+                      }))
+                    }
+                    className="text-xs text-aiAccent hover:text-aiAccent/80 transition-colors w-full text-left pl-3 pt-1"
+                  >
+                    Show {Math.min(25, b.messages.length - bucketLimits[b.bucket])} more (of {b.messages.length} total)
+                  </button>
                 )}
               </div>
             </motion.section>
