@@ -1,30 +1,34 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock the SDKs *before* importing the providers (vi.mock is hoisted).
+// Vitest 4 requires `function` or `class` syntax for mock impls used as constructors.
 vi.mock("@anthropic-ai/sdk", () => {
   const create = vi.fn();
+  function Anthropic() {
+    return { messages: { create } };
+  }
   return {
-    default: vi.fn().mockImplementation(() => ({
-      messages: { create },
-    })),
+    default: Anthropic,
     __mockCreate: create,
   };
 });
 vi.mock("openai", () => {
   const create = vi.fn();
+  function OpenAI() {
+    return { chat: { completions: { create } } };
+  }
   return {
-    default: vi.fn().mockImplementation(() => ({
-      chat: { completions: { create } },
-    })),
+    default: OpenAI,
     __mockCreate: create,
   };
 });
 vi.mock("@google/generative-ai", () => {
   const generateContent = vi.fn();
+  function GoogleGenerativeAI() {
+    return { getGenerativeModel: () => ({ generateContent }) };
+  }
   return {
-    GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
-      getGenerativeModel: () => ({ generateContent }),
-    })),
+    GoogleGenerativeAI,
     __mockGenerate: generateContent,
   };
 });
