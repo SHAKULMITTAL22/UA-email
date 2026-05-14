@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,15 +10,40 @@ import { useAccounts } from "@/hooks/use-accounts";
 import { makeProvider } from "@/lib/providers/factory";
 import { toast } from "sonner";
 
-interface Props { open: boolean; onOpenChange: (o: boolean) => void }
+interface Props {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  initial?: {
+    to?: string;
+    subject?: string;
+    body?: string;
+    accountId?: string;
+  };
+}
 
-export function ComposeDrawer({ open, onOpenChange }: Props) {
+export function ComposeDrawer({ open, onOpenChange, initial }: Props) {
   const accounts = useAccounts();
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setFrom("");
+      setTo("");
+      setSubject("");
+      setBody("");
+      return;
+    }
+    if (initial) {
+      if (initial.accountId !== undefined) setFrom(initial.accountId);
+      if (initial.to !== undefined) setTo(initial.to);
+      if (initial.subject !== undefined) setSubject(initial.subject);
+      if (initial.body !== undefined) setBody(initial.body);
+    }
+  }, [open, initial]);
 
   async function handleSend() {
     const acct = accounts?.find((a) => a.id === from);

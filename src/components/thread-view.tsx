@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Sparkles, Reply, Send, RotateCw } from "lucide-react";
+import { ChevronLeft, Sparkles, Reply, Send, RotateCw, Forward } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ComposeDrawer } from "@/components/compose-drawer";
 import { useThread } from "@/hooks/use-thread";
 import { motion as motionTokens } from "@/styles/motion-tokens";
 
@@ -13,6 +14,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
   const [drafting, setDrafting] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [forwardOpen, setForwardOpen] = useState(false);
 
   if (!thread) return <ThreadSkeleton />;
   if (thread.messages.length === 0) {
@@ -123,12 +125,27 @@ export function ThreadView({ threadId }: { threadId: string }) {
           className="w-full bg-transparent border border-cardBorder rounded-card p-3 text-sm text-textPrimary placeholder:text-textDim resize-none focus:outline-none focus:border-aiAccent/60"
           placeholder={suggestedReply ? "" : "Write a reply…"}
         />
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => setForwardOpen(true)}>
+            <Forward className="h-3.5 w-3.5 mr-1.5" /> Forward
+          </Button>
           <Button onClick={() => void send()} disabled={sending || (!draft && !suggestedReply)}>
             <Send className="h-3.5 w-3.5 mr-1.5" /> {sending ? "Sending…" : "Send"}
           </Button>
         </div>
       </section>
+
+      <ComposeDrawer
+        open={forwardOpen}
+        onOpenChange={setForwardOpen}
+        initial={{
+          accountId: lastMessage.accountId,
+          subject: lastMessage.subject.toLowerCase().startsWith("fwd:")
+            ? lastMessage.subject
+            : `Fwd: ${lastMessage.subject}`,
+          body: `\n\n---------- Forwarded message ----------\nFrom: ${lastMessage.from.name ?? ""} <${lastMessage.from.email}>\nDate: ${new Date(lastMessage.receivedAt).toUTCString()}\nSubject: ${lastMessage.subject}\nTo: ${lastMessage.to.map((t) => t.email).join(", ")}\n\n${lastMessage.body}`,
+        }}
+      />
     </article>
   );
 }
