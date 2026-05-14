@@ -63,22 +63,51 @@ export async function listMessages(
   limit = 50,
 ): Promise<{ messages: ImapMessage[]; nextCursor?: string }> {
   return withConnection(opts, mailbox, async (client) => {
-    const range = sinceUid ? `${sinceUid}:*` : `*:*`;
-    const messages: ImapMessage[] = [];
-    let lastUid = sinceUid ?? 0;
+    // Find the total message count so we can compute a correct range.
+    // The old `*:*` range meant "highest sequence number, single message" =
+    // only the latest 1 email ever arrived. This is the bug that limited
+    // first sync to a single message.
+    const status = await client.status(mailbox, { messages: true });
+    const totalMessages = status.messages ?? 0;
+    if (totalMessages === 0) {
+      return { messages: [] };
+    }
 
-    let count = 0;
-    for await (const msg of client.fetch(range, { envelope: true, flags: true, source: true, uid: true })) {
-      if (count >= limit) break;
+    let range: string;
+    if (sinceUid && sinceUid > 1) {
+      // Pagination: page backwards from the cursor (older messages).
+      // Cursor stores the lowest UID we've seen; fetch UIDs below it.
+      const cap = Math.max(1, sinceUid - 1);
+      const floor = Math.max(1, cap - limit + 1);
+      range = `${floor}:${cap}`;
+    } else {
+      // First sync: latest `limit` sequence numbers — i.e. most recent emails.
+      const startSeq = Math.max(1, totalMessages - limit + 1);
+      range = `${startSeq}:${totalMessages}`;
+    }
+
+    const messages: ImapMessage[] = [];
+    for await (const msg of client.fetch(range, {
+      envelope: true,
+      flags: true,
+      source: true,
+      uid: true,
+    })) {
       const parsed = await parseMessage(msg);
       messages.push(parsed);
-      lastUid = msg.uid;
-      count++;
     }
+
+    // IMAP returns messages in ascending sequence order (oldest first).
+    // Reverse so newest is first in the array — matches what the UI expects.
+    messages.sort((a, b) => b.receivedAt - a.receivedAt);
+
+    const lowestUid = messages.length > 0
+      ? Math.min(...messages.map((m) => m.uid))
+      : undefined;
 
     return {
       messages,
-      ...(messages.length === limit ? { nextCursor: String(lastUid + 1) } : {}),
+      ...(lowestUid && lowestUid > 1 ? { nextCursor: String(lowestUid) } : {}),
     };
   });
 }
