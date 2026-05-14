@@ -1,0 +1,30 @@
+{
+  "captured_at": "2026-05-14",
+  "stack": "Next.js 15.5 + TS strict + Tailwind 3 + Dexie + Auth.js + Anthropic/OpenAI/Gemini SDKs",
+  "tests": {
+    "unit": 22,
+    "e2e_chromium": 8,
+    "axe_violations": 0
+  },
+  "agents": {
+    "infra-agent": 17,
+    "ui-agent": 13,
+    "test-agent": 11,
+    "ai-agent": 10,
+    "provider-agent": 9,
+    "pwa-agent": 6,
+    "doc-agent": 2,
+    "ship-agent": 1
+  },
+  "commits_total": 76,
+  "routes": {
+    "static_pages": ["/", "/settings"],
+    "dynamic_pages": ["/thread/[threadId]"],
+    "api_routes": ["/api/auth/[...nextauth]", "/api/auth/handoff", "/api/imap", "/api/ai/triage", "/api/ai/draft"]
+  },
+  "design": {
+    "aesthetic": "Neo-Editorial Dark",
+    "ai_accent": "#a78bfa",
+    "fonts": ["Inter", "Fraunces (italic display)", "JetBrains Mono"]
+  }
+}
