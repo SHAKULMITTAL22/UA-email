@@ -1,0 +1,37 @@
+# Brainstorm scratch
+.superpowers/
+
+# Node
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Tests
+coverage/
+.playwright/
+playwright-report/
+test-results/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
