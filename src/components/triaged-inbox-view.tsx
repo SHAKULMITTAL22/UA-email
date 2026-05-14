@@ -58,10 +58,16 @@ const BUCKET_META: Record<
 interface TriagedInboxViewProps {
   activeAccountId?: string | "unified";
   searchQuery?: string;
+  filter?: "all" | "needs_reply" | "fyi" | "newsletter" | "noise" | "unclassified";
   onAddAccount?: () => void;
 }
 
-export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccount }: TriagedInboxViewProps) {
+export function TriagedInboxView({
+  activeAccountId,
+  searchQuery = "",
+  filter: _filter = "all",
+  onAddAccount,
+}: TriagedInboxViewProps) {
   const accounts = useAccounts();
   const triaged = useTriagedInbox(activeAccountId);
   const { settings } = useSettings();

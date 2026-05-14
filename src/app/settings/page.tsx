@@ -179,7 +179,7 @@ export default function SettingsPage() {
     p === "anthropic" ? "Anthropic Claude" : p === "openai" ? "OpenAI" : "Google Gemini";
 
   return (
-    <div className="max-w-2xl space-y-10">
+    <div className="mx-auto max-w-2xl space-y-10 px-4 py-6 sm:py-10">
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 text-sm text-textMuted hover:text-textPrimary"

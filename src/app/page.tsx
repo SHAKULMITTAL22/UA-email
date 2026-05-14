@@ -2,64 +2,49 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { Pencil, Settings } from "lucide-react";
-import { AccountSwitcher } from "@/components/account-switcher";
+import { AppShell, type ActiveFilter } from "@/components/app-shell";
 import { TriagedInboxView } from "@/components/triaged-inbox-view";
 import { ComposeDrawer } from "@/components/compose-drawer";
-import { SearchBar } from "@/components/search-bar";
 import { AddAccountDialog } from "@/components/add-account-dialog";
-import { Button } from "@/components/ui/button";
-import { useMagnetic } from "@/hooks/use-magnetic";
+import { SearchBar } from "@/components/search-bar";
 import { addAccount } from "@/lib/accounts/account-store";
 import { toast } from "sonner";
 
 export default function HomePage() {
-  const [activeAccountId, setActiveAccountId] = useState<string | "unified">("unified");
+  const [filter, setFilter] = useState<ActiveFilter>("all");
+  const [activeAccountId, setActiveAccountId] = useState<string | "unified">(
+    "unified",
+  );
   const [composeOpen, setComposeOpen] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
+  const [addAccountOpen, setAddAccountOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const composeMagnetRef = useMagnetic<HTMLButtonElement>();
 
   return (
-    <main className="space-y-8">
+    <>
       <Suspense fallback={null}>
         <AuthCallback />
       </Suspense>
-      <div className="flex items-center justify-between">
-        <AccountSwitcher
-          activeAccountId={activeAccountId}
-          onChange={setActiveAccountId}
-          onAddAccount={() => setAddOpen(true)}
-        />
-        <div className="flex items-center gap-2">
-          <Button
-            ref={composeMagnetRef}
-            onClick={() => setComposeOpen(true)}
-            size="sm"
-            className="transition-transform"
-          >
-            <Pencil className="h-3.5 w-3.5 mr-1.5" />
-            Compose
-          </Button>
-          <Link
-            href="/settings"
-            aria-label="Settings"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-textPrimary hover:bg-white/[0.04] transition-colors"
-          >
-            <Settings className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </div>
-      <SearchBar value={searchQuery} onChange={setSearchQuery} />
-      <ComposeDrawer open={composeOpen} onOpenChange={setComposeOpen} />
-      <AddAccountDialog open={addOpen} onOpenChange={setAddOpen} />
-      <TriagedInboxView
+      <AppShell
+        filter={filter}
+        onFilterChange={setFilter}
         activeAccountId={activeAccountId}
-        searchQuery={searchQuery}
-        onAddAccount={() => setAddOpen(true)}
-      />
-    </main>
+        onAccountChange={setActiveAccountId}
+        onCompose={() => setComposeOpen(true)}
+        onAddAccount={() => setAddAccountOpen(true)}
+      >
+        <div className="space-y-6">
+          <SearchBar value={searchQuery} onChange={setSearchQuery} />
+          <TriagedInboxView
+            activeAccountId={activeAccountId}
+            searchQuery={searchQuery}
+            filter={filter}
+            onAddAccount={() => setAddAccountOpen(true)}
+          />
+        </div>
+      </AppShell>
+      <ComposeDrawer open={composeOpen} onOpenChange={setComposeOpen} />
+      <AddAccountDialog open={addAccountOpen} onOpenChange={setAddAccountOpen} />
+    </>
   );
 }
 
@@ -97,7 +82,9 @@ function AuthCallback() {
         toast.success(`Connected ${t.email}`);
         history.replaceState(null, "", "/");
       } catch (e) {
-        toast.error("Handoff failed: " + (e instanceof Error ? e.message : "unknown"));
+        toast.error(
+          "Handoff failed: " + (e instanceof Error ? e.message : "unknown"),
+        );
       }
     })();
   }, [params]);

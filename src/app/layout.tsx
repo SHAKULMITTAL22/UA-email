@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
-import Link from "next/link";
 import { Toaster } from "@/components/ui/sonner";
-import { Wordmark } from "@/components/wordmark";
 import "./globals.css";
 
 const geist = Geist({
@@ -44,16 +42,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${geist.variable} ${geistMono.variable} ${fraunces.variable}`}
     >
       <body className="bg-canvas text-textPrimary antialiased min-h-screen">
-        <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
-          <Link
-            href="/"
-            className="mb-6 inline-flex outline-none focus-visible:ring-2 focus-visible:ring-aiAccent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas rounded-sm"
-          >
-            <Wordmark size="sm" />
-          </Link>
-          {children}
-        </div>
-        <Toaster theme="dark" />
+        {children}
+        <Toaster />
       </body>
     </html>
   );
