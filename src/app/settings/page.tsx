@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/hooks/use-settings";
 import { useAccounts } from "@/hooks/use-accounts";
+import { useMagnetic } from "@/hooks/use-magnetic";
 import { removeAccount } from "@/lib/accounts/account-store";
 import { retriageAll } from "@/lib/sync/sync-loop";
 import { toast } from "sonner";
@@ -37,6 +38,8 @@ export default function SettingsPage() {
   const [retriaging, setRetriaging] = useState(false);
   const [saving, setSaving] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const saveMagnetRef = useMagnetic<HTMLButtonElement>();
+  const retriageMagnetRef = useMagnetic<HTMLButtonElement>();
 
   // Draft key — held locally so we can save + verify in one click,
   // instead of dribbling characters into IndexedDB on every keystroke.
@@ -292,7 +295,12 @@ export default function SettingsPage() {
           Process every unclassified message in your real accounts in one pass. Use this after fixing an API key or switching LLM providers.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={handleRetriageAll} disabled={retriaging}>
+          <Button
+            ref={retriageMagnetRef}
+            onClick={handleRetriageAll}
+            disabled={retriaging}
+            className="transition-transform"
+          >
             <RotateCw className={`mr-1.5 h-3.5 w-3.5 ${retriaging ? "animate-spin" : ""}`} />
             {retriaging ? "Re-triaging…" : "Re-triage all unclassified"}
           </Button>
@@ -390,7 +398,12 @@ export default function SettingsPage() {
         </p>
 
         <div className="flex gap-2 pt-1">
-          <Button onClick={saveAndVerify} disabled={saving}>
+          <Button
+            ref={saveMagnetRef}
+            onClick={saveAndVerify}
+            disabled={saving}
+            className="transition-transform"
+          >
             <Save className={`mr-1.5 h-3.5 w-3.5 ${saving ? "animate-pulse" : ""}`} />
             {saving ? "Saving & verifying…" : "Save & verify"}
           </Button>

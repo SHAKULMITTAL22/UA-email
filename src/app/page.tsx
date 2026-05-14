@@ -10,6 +10,7 @@ import { ComposeDrawer } from "@/components/compose-drawer";
 import { SearchBar } from "@/components/search-bar";
 import { AddAccountDialog } from "@/components/add-account-dialog";
 import { Button } from "@/components/ui/button";
+import { useMagnetic } from "@/hooks/use-magnetic";
 import { addAccount } from "@/lib/accounts/account-store";
 import { toast } from "sonner";
 
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [composeOpen, setComposeOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const composeMagnetRef = useMagnetic<HTMLButtonElement>();
 
   return (
     <main className="space-y-8">
@@ -31,7 +33,12 @@ export default function HomePage() {
           onAddAccount={() => setAddOpen(true)}
         />
         <div className="flex items-center gap-2">
-          <Button onClick={() => setComposeOpen(true)} size="sm">
+          <Button
+            ref={composeMagnetRef}
+            onClick={() => setComposeOpen(true)}
+            size="sm"
+            className="transition-transform"
+          >
             <Pencil className="h-3.5 w-3.5 mr-1.5" />
             Compose
           </Button>

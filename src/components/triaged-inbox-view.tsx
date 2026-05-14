@@ -14,6 +14,8 @@ import { useTriagedInbox } from "@/hooks/use-triaged-inbox";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useSettings } from "@/hooks/use-settings";
 import { TriageCard } from "@/components/triage-card";
+import { SpotlightCard } from "@/components/spotlight-card";
+import { useMagnetic } from "@/hooks/use-magnetic";
 import type { Bucket } from "@/lib/types/message";
 
 const BUCKET_META: Record<
@@ -62,6 +64,8 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
   const accounts = useAccounts();
   const triaged = useTriagedInbox(activeAccountId);
   const { settings } = useSettings();
+  const addAccountMagnetRef = useMagnetic<HTMLButtonElement>();
+  const demoMagnetRef = useMagnetic<HTMLButtonElement>();
   const byokKey = settings.byok[settings.llmProvider];
   const sync = useSync({
     intervalSec: settings.syncIntervalSec,
@@ -199,61 +203,68 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
       ) : null}
 
       {noAccounts && (
-        <motion.div
-          initial={{ y: 12, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: motionTokens.duration.dramatic, ease: motionTokens.ease.out }}
-          className="glass-card relative overflow-hidden rounded-card p-10 sm:p-14 text-center"
-          role="status"
-        >
-          {/* Inner glow */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-56 w-2/3 rounded-full bg-aiAccent/10 blur-3xl"
-          />
+        <SpotlightCard className="glass-card rounded-card">
+          <motion.div
+            initial={{ y: 12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: motionTokens.duration.dramatic, ease: motionTokens.ease.out }}
+            className="relative p-10 sm:p-14 text-center"
+            role="status"
+          >
+            {/* Inner glow */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-56 w-2/3 rounded-full bg-aiAccent/10 blur-3xl"
+            />
 
-          <div className="relative space-y-8">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-aiAccentBorder bg-aiAccentSoft">
-              <Sparkles className="h-7 w-7 text-aiAccent" aria-hidden />
-            </div>
-            <div className="space-y-3">
-              <h2 className="font-display text-3xl leading-[1.05] text-textPrimary sm:text-4xl">
-                One{" "}
-                <span className="italic text-aiAccent">AI call</span>{" "}
-                <br className="hidden sm:block" />
-                to clear your inbox.
-              </h2>
-              <p className="mx-auto max-w-md text-sm leading-relaxed text-textSecondary">
-                Connect any email account and watch AI sort today&apos;s mail into{" "}
-                <span className="text-bucket-needsReply">Needs reply</span>,{" "}
-                <span className="text-bucket-fyi">FYI</span>,{" "}
-                <span className="text-bucket-newsletter">Newsletters</span>, and{" "}
-                <span className="text-bucket-noise">Noise</span> — with one-line summaries and pre-drafted replies on every important thread.
+            <div className="relative space-y-8">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-aiAccentBorder bg-aiAccentSoft">
+                <Sparkles className="h-7 w-7 text-aiAccent" aria-hidden />
+              </div>
+              <div className="space-y-3">
+                <h2 className="font-display text-3xl leading-[1.05] text-textPrimary sm:text-4xl">
+                  One{" "}
+                  <span className="italic text-aiAccent">AI call</span>{" "}
+                  <br className="hidden sm:block" />
+                  to clear your inbox.
+                </h2>
+                <p className="mx-auto max-w-md text-sm leading-relaxed text-textSecondary">
+                  Connect any email account and watch AI sort today&apos;s mail into{" "}
+                  <span className="text-bucket-needsReply">Needs reply</span>,{" "}
+                  <span className="text-bucket-fyi">FYI</span>,{" "}
+                  <span className="text-bucket-newsletter">Newsletters</span>, and{" "}
+                  <span className="text-bucket-noise">Noise</span> — with one-line summaries and pre-drafted replies on every important thread.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-center">
+                <Button
+                  ref={addAccountMagnetRef}
+                  onClick={() => onAddAccount?.()}
+                  className="min-w-[180px] transition-transform"
+                >
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Add an account
+                </Button>
+                <Button
+                  ref={demoMagnetRef}
+                  variant="outline"
+                  onClick={async () => {
+                    const { loadDemoInbox } = await import("@/lib/demo/load-demo");
+                    await loadDemoInbox();
+                    toast.success("Demo inbox loaded — 12 triaged emails ready");
+                  }}
+                  className="min-w-[180px] transition-transform"
+                >
+                  <Sparkles className="h-4 w-4 mr-1.5 text-aiAccent" />
+                  Try demo inbox
+                </Button>
+              </div>
+              <p className="text-xs text-textDim">
+                IMAP works for Gmail / Outlook / Yahoo / AOL with an app password. Or load the demo above — no setup, no keys.
               </p>
             </div>
-            <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-center">
-              <Button onClick={() => onAddAccount?.()} className="min-w-[180px]">
-                <Plus className="h-4 w-4 mr-1.5" />
-                Add an account
-              </Button>
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  const { loadDemoInbox } = await import("@/lib/demo/load-demo");
-                  await loadDemoInbox();
-                  toast.success("Demo inbox loaded — 12 triaged emails ready");
-                }}
-                className="min-w-[180px]"
-              >
-                <Sparkles className="h-4 w-4 mr-1.5 text-aiAccent" />
-                Try demo inbox
-              </Button>
-            </div>
-            <p className="text-xs text-textDim">
-              IMAP works for Gmail / Outlook / Yahoo / AOL with an app password. Or load the demo above — no setup, no keys.
-            </p>
-          </div>
-        </motion.div>
+          </motion.div>
+        </SpotlightCard>
       )}
 
       <div className="space-y-8">
