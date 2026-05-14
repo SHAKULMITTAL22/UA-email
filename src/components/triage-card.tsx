@@ -16,7 +16,7 @@ const STRIPE_COLOR: Record<Bucket | "unclassified", string> = {
   needs_reply: "#d4ff3a",
   fyi: "#7dd3fc",
   newsletter: "#fbbf77",
-  noise: "#64748b",
+  noise: "#94a3b8",
   unclassified: "rgba(255,255,255,0.18)",
 };
 

@@ -33,7 +33,9 @@ export function AccountSwitcher({ activeAccountId = "unified", onChange, onAddAc
           aria-haspopup="listbox"
         >
           <Inbox className="h-4 w-4 text-aiAccent" aria-hidden />
-          <span className="font-display italic text-lg">{active?.label ?? "No account"}</span>
+          <span className="font-display text-xl italic leading-none">
+            {active?.label ?? "No account"}
+          </span>
           <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
         </Button>
 
@@ -43,7 +45,7 @@ export function AccountSwitcher({ activeAccountId = "unified", onChange, onAddAc
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.15 }}
             role="listbox"
-            className="absolute left-0 top-full z-10 mt-2 w-72 rounded-drawer border border-cardBorder bg-card backdrop-blur-card p-1"
+            className="glass-card absolute left-0 top-full z-10 mt-2 w-72 rounded-drawer border border-aiAccentBorder p-1"
           >
             <SwitcherItem
               label="Unified Inbox"
@@ -76,7 +78,17 @@ export function AccountSwitcher({ activeAccountId = "unified", onChange, onAddAc
   );
 }
 
-function SwitcherItem({ label, sub, active, onClick }: { label: string; sub: string; active?: boolean; onClick: () => void }) {
+function SwitcherItem({
+  label,
+  sub,
+  active,
+  onClick,
+}: {
+  label: string;
+  sub: string;
+  active?: boolean;
+  onClick: () => void;
+}) {
   return (
     <li>
       <button
@@ -84,12 +96,21 @@ function SwitcherItem({ label, sub, active, onClick }: { label: string; sub: str
         role="option"
         aria-selected={active}
         className={cn(
-          "flex w-full flex-col items-start rounded-card px-3 py-2 text-left transition-colors hover:bg-white/5",
+          "flex w-full items-center gap-3 rounded-card px-3 py-2 text-left transition-colors hover:bg-white/5",
           active && "bg-white/5",
         )}
       >
-        <span className="text-sm text-textPrimary">{label}</span>
-        <span className="text-xs text-textMuted">{sub}</span>
+        <span
+          aria-hidden
+          className={cn(
+            "h-2 w-2 shrink-0 rounded-full transition-colors",
+            active ? "bg-aiAccent shadow-[0_0_8px_-1px_#d4ff3a]" : "bg-white/10",
+          )}
+        />
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate text-sm text-textPrimary">{label}</span>
+          <span className="truncate text-xs text-textMuted">{sub}</span>
+        </span>
       </button>
     </li>
   );

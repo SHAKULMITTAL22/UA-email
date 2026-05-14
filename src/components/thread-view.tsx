@@ -90,16 +90,18 @@ export function ThreadView({ threadId }: { threadId: string }) {
         <ChevronLeft className="h-4 w-4" /> Back to inbox
       </Link>
 
-      <header>
-        <h1 className="font-display text-2xl text-textPrimary">{lastMessage.subject}</h1>
-        <p className="mt-1 text-sm text-textDim">
+      <header className="space-y-2">
+        <h1 className="font-display text-3xl leading-tight text-textPrimary sm:text-4xl">
+          {lastMessage.subject}
+        </h1>
+        <p className="text-sm text-textMuted">
           {thread.messages.length} message{thread.messages.length === 1 ? "" : "s"} · {uniqueFroms}
         </p>
-        <div className="flex items-center flex-wrap gap-1.5 mt-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           {lastMessage.labels.map((l) => (
             <span
               key={l}
-              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-aiAccent/10 text-aiAccent border border-aiAccent/20"
+              className="inline-flex items-center gap-1 rounded border border-aiAccentBorder bg-aiAccentSoft px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-aiAccent"
             >
               {l}
               <button
@@ -124,27 +126,33 @@ export function ThreadView({ threadId }: { threadId: string }) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: motionTokens.duration.base, delay: i * 0.03, ease: motionTokens.ease.out }}
-              className="rounded-card border border-cardBorder bg-card backdrop-blur-card p-4"
+              className="glass-card rounded-card p-4"
             >
               <header className="flex items-baseline justify-between text-sm">
                 <span className="font-medium text-textPrimary">{m.from.name ?? m.from.email}</span>
-                <span className="text-textDim font-mono text-xs">{new Date(m.receivedAt).toLocaleString()}</span>
+                <span className="font-mono text-xs text-textDim">{new Date(m.receivedAt).toLocaleString()}</span>
               </header>
               {ai && (
-                <p className="mt-2 text-xs text-aiAccent italic flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3" aria-hidden /> {ai.summary}
+                <p className="mt-2 flex items-center gap-1.5 font-display text-[13px] italic text-aiAccent">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden /> {ai.summary}
                 </p>
               )}
-              <div className="mt-3 whitespace-pre-wrap text-sm text-textPrimary/90 leading-relaxed">{m.body}</div>
+              <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-textPrimary/90">{m.body}</div>
             </motion.section>
           );
         })}
       </div>
 
-      <section aria-labelledby="reply-heading" className="rounded-card border border-aiAccent/30 bg-aiAccent/[0.04] p-4 space-y-3">
+      <section
+        aria-labelledby="reply-heading"
+        className="space-y-3 rounded-card border border-aiAccentBorder bg-aiAccentSoft p-4"
+      >
         <header className="flex items-center justify-between">
-          <h2 id="reply-heading" className="text-sm font-medium text-aiAccent flex items-center gap-1.5">
-            <Reply className="h-3.5 w-3.5" /> Suggested reply
+          <h2
+            id="reply-heading"
+            className="flex items-center gap-1.5 font-display text-lg italic text-aiAccent"
+          >
+            <Reply className="h-4 w-4" /> Suggested reply
           </h2>
           <Button variant="ghost" size="sm" onClick={() => void regenerate()} disabled={drafting}>
             <RotateCw className={`h-3.5 w-3.5 mr-1.5 ${drafting ? "animate-spin" : ""}`} /> Regenerate

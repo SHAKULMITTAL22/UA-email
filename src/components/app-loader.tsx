@@ -2,20 +2,20 @@
 
 export function AppLoader() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3" role="status" aria-label="Loading UA Email">
-      <h1 className="font-display italic text-3xl text-textPrimary">UA Email</h1>
-      <div className="flex items-center gap-1.5" aria-hidden>
+    <div
+      className="flex min-h-[60vh] flex-col items-center justify-center gap-6"
+      role="status"
+      aria-label="Loading UA Email"
+    >
+      <h1 className="font-display text-5xl leading-none tracking-tight text-textPrimary">
+        UA{" "}
+        <span className="italic text-aiAccent">Email</span>
+      </h1>
+      <div aria-hidden className="relative h-9 w-9">
+        <span className="absolute inset-0 rounded-full border border-white/10" />
         <span
-          className="h-1.5 w-1.5 rounded-full bg-aiAccent animate-pulse"
-          style={{ animationDelay: "0ms" }}
-        />
-        <span
-          className="h-1.5 w-1.5 rounded-full bg-aiAccent animate-pulse"
-          style={{ animationDelay: "150ms" }}
-        />
-        <span
-          className="h-1.5 w-1.5 rounded-full bg-aiAccent animate-pulse"
-          style={{ animationDelay: "300ms" }}
+          className="absolute inset-0 animate-spin rounded-full border border-transparent border-t-aiAccent border-r-aiAccent/60"
+          style={{ animationDuration: "900ms" }}
         />
       </div>
     </div>

@@ -218,9 +218,10 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
             </div>
             <div className="space-y-3">
               <h2 className="font-display text-3xl leading-[1.05] text-textPrimary sm:text-4xl">
-                Your inbox,{" "}
-                <span className="italic text-aiAccent">triaged</span>{" "}
-                in five seconds.
+                One{" "}
+                <span className="italic text-aiAccent">AI call</span>{" "}
+                <br className="hidden sm:block" />
+                to clear your inbox.
               </h2>
               <p className="mx-auto max-w-md text-sm leading-relaxed text-textSecondary">
                 Connect any email account and watch AI sort today&apos;s mail into{" "}

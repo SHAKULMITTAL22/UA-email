@@ -15,8 +15,8 @@ const config: Config = {
         cardBorderActive: "rgba(212,255,58,0.25)",
         textPrimary: "#f5f7fa",
         textSecondary: "#c5cad6",
-        textMuted: "#8b94a8",
-        textDim: "#5a6175",
+        textMuted: "#a8b0c4",
+        textDim: "#7a8298",
         aiAccent: "#d4ff3a",
         aiAccentSoft: "rgba(212,255,58,0.15)",
         aiAccentBorder: "rgba(212,255,58,0.35)",
@@ -24,7 +24,10 @@ const config: Config = {
           needsReply: "#d4ff3a",
           fyi: "#7dd3fc",
           newsletter: "#fbbf77",
-          noise: "#64748b",
+          /* `#64748b` looked right but failed AA contrast against the dark
+             canvas. Brighten just enough to pass 4.5:1 while staying muted
+             relative to the other buckets. */
+          noise: "#94a3b8",
         },
         success: "#4ade80",
         error: "#f87171",

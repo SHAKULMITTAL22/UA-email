@@ -172,17 +172,90 @@ export default function SettingsPage() {
     }
   }
 
+  const providerLabel = (p: AppSettingsProvider) =>
+    p === "anthropic" ? "Anthropic Claude" : p === "openai" ? "OpenAI" : "Google Gemini";
+
   return (
-    <div className="space-y-8 max-w-2xl">
-      <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-textMuted hover:text-textPrimary">
+    <div className="max-w-2xl space-y-10">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1.5 text-sm text-textMuted hover:text-textPrimary"
+      >
         <ChevronLeft className="h-4 w-4" /> Back to inbox
       </Link>
 
-      <h1 className="font-display text-3xl text-textPrimary">Settings</h1>
+      <h1 className="font-display text-4xl leading-[1.05] tracking-tight text-textPrimary sm:text-5xl">
+        Settings
+      </h1>
 
-      <section className="space-y-3 rounded-card border border-aiAccent/30 bg-aiAccent/[0.04] p-4">
-        <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— Try the demo</h2>
-        <p className="text-sm text-textMuted">
+      {/* Hero status panel — the visual centerpiece of the page.
+          Verified state takes the prize spot. */}
+      {testResult?.ok || verifiedForCurrent ? (
+        <div className="glass-card relative overflow-hidden rounded-card border-aiAccentBorder p-5">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-aiAccent/10 blur-3xl"
+          />
+          <div className="relative">
+            <div className="mb-2 flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-aiAccent" />
+              <span className="font-display text-lg italic text-textPrimary">
+                LLM configured correctly
+              </span>
+            </div>
+            <div className="font-mono text-xs text-textSecondary">
+              {testResult?.ok
+                ? `${testResult.providerSent} · ${testResult.modelUsed} · key ${testResult.keyMasked}`
+                : `${verifiedForCurrent!.provider} · ${verifiedForCurrent!.model} · verified ${formatRelativeTime(verifiedForCurrent!.at)}`}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="rounded-card border p-5"
+          style={{
+            background: "rgba(212,255,58,0.05)",
+            borderColor: "rgba(212,255,58,0.25)",
+          }}
+        >
+          <div className="mb-2 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-aiAccent" />
+            <span className="font-display text-lg italic text-textPrimary">
+              Bring your own key
+            </span>
+          </div>
+          <div className="grid gap-1 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-textMuted">Currently active</span>
+              <span className="font-medium text-aiAccent">
+                {providerLabel(settings.llmProvider)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-textMuted">API key</span>
+              <span
+                className={
+                  settings.byok[settings.llmProvider]
+                    ? "text-success"
+                    : "text-warning"
+                }
+              >
+                {settings.byok[settings.llmProvider]
+                  ? `set (${(settings.byok[settings.llmProvider] ?? "").length} chars) · click Save & verify`
+                  : "not set — paste a key below"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <section className="space-y-3 rounded-card border border-aiAccentBorder bg-aiAccentSoft p-4">
+        <div className="section-rule">
+          <h2 className="text-[11px] font-medium uppercase tracking-[2.5px] text-aiAccent">
+            Try the demo
+          </h2>
+        </div>
+        <p className="text-sm text-textSecondary">
           No accounts? No API keys? Load 12 realistic emails with pre-baked AI triage results to see UA-Email in action.
         </p>
         <div className="flex gap-2">
@@ -193,7 +266,7 @@ export default function SettingsPage() {
               toast.success("Demo inbox loaded — head back to home");
             }}
           >
-            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+            <Sparkles className="mr-1.5 h-3.5 w-3.5" />
             Load demo inbox
           </Button>
           <Button
@@ -209,14 +282,18 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="space-y-3 rounded-card border border-cardBorder bg-card p-4">
-        <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— Re-triage your inbox</h2>
-        <p className="text-sm text-textMuted">
+      <section className="glass-card space-y-3 rounded-card p-4">
+        <div className="section-rule">
+          <h2 className="text-[11px] font-medium uppercase tracking-[2.5px] text-textSecondary">
+            Re-triage your inbox
+          </h2>
+        </div>
+        <p className="text-sm text-textSecondary">
           Process every unclassified message in your real accounts in one pass. Use this after fixing an API key or switching LLM providers.
         </p>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={handleRetriageAll} disabled={retriaging}>
-            <RotateCw className={`h-3.5 w-3.5 mr-1.5 ${retriaging ? "animate-spin" : ""}`} />
+            <RotateCw className={`mr-1.5 h-3.5 w-3.5 ${retriaging ? "animate-spin" : ""}`} />
             {retriaging ? "Re-triaging…" : "Re-triage all unclassified"}
           </Button>
           <Button
@@ -241,53 +318,22 @@ export default function SettingsPage() {
 
       <Separator />
 
-      <section className="space-y-3">
-        <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— AI provider</h2>
-
-        {/* Big status banner — verified-good takes the prize spot when last test passed
-            OR when a persisted-verified state matches the current provider+key */}
-        {testResult?.ok || verifiedForCurrent ? (
-          <div className="rounded-card border border-green-500/40 bg-green-500/10 p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle2 className="h-5 w-5 text-green-400" />
-              <span className="font-medium text-green-300">LLM configured correctly</span>
-            </div>
-            <div className="text-xs text-green-300/80 font-mono">
-              {testResult?.ok
-                ? `${testResult.providerSent} · ${testResult.modelUsed} · key ${testResult.keyMasked}`
-                : `${verifiedForCurrent!.provider} · ${verifiedForCurrent!.model} · verified ${formatRelativeTime(verifiedForCurrent!.at)}`}
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-card border border-aiAccent/30 bg-aiAccent/[0.05] p-3 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-textMuted">Currently active:</span>
-              <span className="font-medium text-aiAccent">
-                {settings.llmProvider === "anthropic" && "Anthropic Claude"}
-                {settings.llmProvider === "openai" && "OpenAI"}
-                {settings.llmProvider === "gemini" && "Google Gemini"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-textMuted">API key:</span>
-              <span className={settings.byok[settings.llmProvider] ? "text-green-400" : "text-amber-400"}>
-                {settings.byok[settings.llmProvider]
-                  ? `set (${(settings.byok[settings.llmProvider] ?? "").length} chars) · click Save & verify`
-                  : "not set — paste a key below"}
-              </span>
-            </div>
-          </div>
-        )}
+      <section className="space-y-4">
+        <div className="section-rule">
+          <h2 className="text-[11px] font-medium uppercase tracking-[2.5px] text-aiAccent">
+            AI provider
+          </h2>
+        </div>
 
         {/* Auto-detect wrong-provider — when a key is stashed under a different provider */}
         {orphanProvider && (
           <div className="rounded-card border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" />
               <div className="flex-1">
                 <p className="text-amber-200">
-                  You have a <strong>{orphanProvider === "anthropic" ? "Anthropic" : orphanProvider === "openai" ? "OpenAI" : "Gemini"}</strong> key saved, but{" "}
-                  <strong>{settings.llmProvider === "anthropic" ? "Anthropic" : settings.llmProvider === "openai" ? "OpenAI" : "Gemini"}</strong> is currently active. Switch?
+                  You have a <strong>{providerLabel(orphanProvider)}</strong> key saved, but{" "}
+                  <strong>{providerLabel(settings.llmProvider)}</strong> is currently active. Switch?
                 </p>
                 <Button
                   variant="outline"
@@ -295,7 +341,7 @@ export default function SettingsPage() {
                   className="mt-2"
                   onClick={() => void update({ llmProvider: orphanProvider })}
                 >
-                  Switch to {orphanProvider === "anthropic" ? "Anthropic" : orphanProvider === "openai" ? "OpenAI" : "Gemini"}
+                  Switch to {providerLabel(orphanProvider)}
                 </Button>
               </div>
             </div>
@@ -308,7 +354,7 @@ export default function SettingsPage() {
             id="llmProvider"
             value={settings.llmProvider}
             onChange={(e) => void update({ llmProvider: e.target.value as AppSettingsProvider })}
-            className="w-full bg-card border border-cardBorder rounded-card px-3 py-2 text-sm text-textPrimary"
+            className="w-full rounded-card border border-cardBorder bg-card px-3 py-2 text-sm text-textPrimary"
           >
             <option value="anthropic">Anthropic Claude (with prompt caching)</option>
             <option value="openai">OpenAI</option>
@@ -319,9 +365,7 @@ export default function SettingsPage() {
         {/* Single BYOK field for the active provider — value held in local draft state */}
         <div className="space-y-2">
           <Label htmlFor="active-byok">
-            {settings.llmProvider === "anthropic" && "Anthropic API key"}
-            {settings.llmProvider === "openai" && "OpenAI API key"}
-            {settings.llmProvider === "gemini" && "Google Gemini API key"}
+            {providerLabel(settings.llmProvider)} API key
           </Label>
           <Input
             id="active-byok"
@@ -341,24 +385,24 @@ export default function SettingsPage() {
           />
         </div>
 
-        <p className="text-xs text-textMuted italic">
+        <p className="text-xs italic text-textMuted">
           Keys stay in your browser. Sent to /api/ai/* on each request, never persisted server-side.
         </p>
 
-        <div className="pt-1 flex gap-2">
+        <div className="flex gap-2 pt-1">
           <Button onClick={saveAndVerify} disabled={saving}>
-            <Save className={`h-3.5 w-3.5 mr-1.5 ${saving ? "animate-pulse" : ""}`} />
+            <Save className={`mr-1.5 h-3.5 w-3.5 ${saving ? "animate-pulse" : ""}`} />
             {saving ? "Saving & verifying…" : "Save & verify"}
           </Button>
         </div>
 
         {testResult && !testResult.ok && (
-          <div className="mt-2 rounded-card border border-red-500/30 bg-red-500/10 p-3 text-xs space-y-1" role="status">
+          <div className="mt-2 space-y-1 rounded-card border border-red-500/30 bg-red-500/10 p-3 text-xs" role="status">
             <div className="flex items-center gap-2 font-medium">
               <XCircle className="h-4 w-4 text-red-400" />
               <span className="text-red-300">Verification failed</span>
             </div>
-            <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-0.5 mt-2 text-textMuted font-mono">
+            <div className="mt-2 grid grid-cols-[100px_1fr] gap-x-2 gap-y-0.5 font-mono text-textMuted">
               <span>provider:</span>
               <span className="text-textPrimary">{testResult.providerSent}</span>
               <span>api key:</span>
@@ -366,10 +410,10 @@ export default function SettingsPage() {
               <span>cause:</span>
               <span className="text-red-300">{testResult.errorCause}</span>
               <span>message:</span>
-              <span className="text-red-300 break-words">{testResult.errorMessage}</span>
+              <span className="break-words text-red-300">{testResult.errorMessage}</span>
             </div>
             {testResult.errorCause === "auth" && testResult.providerSent === "anthropic" && (
-              <p className="mt-2 text-xs text-amber-300 italic">
+              <p className="mt-2 text-xs italic text-amber-300">
                 Hint: the request was sent with provider=&quot;anthropic&quot;. If you intended Gemini, change the dropdown above to &quot;Google Gemini&quot; — pasting a key in BYOK doesn&apos;t change the active provider.
               </p>
             )}
@@ -380,7 +424,11 @@ export default function SettingsPage() {
       <Separator />
 
       <section className="space-y-3">
-        <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— Sync</h2>
+        <div className="section-rule">
+          <h2 className="text-[11px] font-medium uppercase tracking-[2.5px] text-aiAccent">
+            Sync
+          </h2>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="sync-interval">Sync interval (seconds)</Label>
           <Input
@@ -399,10 +447,17 @@ export default function SettingsPage() {
       <Separator />
 
       <section className="space-y-3">
-        <h2 className="text-xs uppercase tracking-[2px] text-aiAccent">— Accounts</h2>
+        <div className="section-rule">
+          <h2 className="text-[11px] font-medium uppercase tracking-[2.5px] text-aiAccent">
+            Accounts
+          </h2>
+        </div>
         {!accounts?.length && <p className="text-sm text-textMuted">No accounts yet.</p>}
         {accounts?.map((a) => (
-          <div key={a.id} className="flex items-center justify-between rounded-card border border-cardBorder bg-card p-3">
+          <div
+            key={a.id}
+            className="glass-card flex items-center justify-between rounded-card p-3"
+          >
             <div>
               <div className="text-sm text-textPrimary">{a.label}</div>
               <div className="text-xs text-textMuted">
