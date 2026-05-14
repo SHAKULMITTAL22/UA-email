@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getDB } from "@/lib/db/db";
 import type { AppSettings } from "@/lib/db/schema";
@@ -16,9 +17,15 @@ export function useSettings(): { settings: AppSettings; update: (patch: Partial<
     if (typeof indexedDB === "undefined") return DEFAULTS;
     const db = getDB();
     const existing = await db.settings.get("singleton");
-    if (!existing) await db.settings.put(DEFAULTS);
-    return existing ?? DEFAULTS;
+    return existing ?? null;
   }, []);
+
+  useEffect(() => {
+    if (typeof indexedDB === "undefined") return;
+    if (current === null) {
+      void getDB().settings.put(DEFAULTS);
+    }
+  }, [current]);
 
   async function update(patch: Partial<AppSettings>) {
     const db = getDB();
