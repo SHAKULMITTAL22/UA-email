@@ -5,23 +5,87 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --grain-opacity: 0.025;
   }
 
   html, body {
-    background: #0f0f14;
-    color: #fafafa;
-    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #0a0e1c;
+    color: #f5f7fa;
+    font-family: var(--font-geist), system-ui, sans-serif;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Subtle gradient noise to avoid flat black */
-  body {
-    background-image: radial-gradient(
-      ellipse at top,
-      rgba(139, 92, 246, 0.06),
-      transparent 60%
-    );
-    min-height: 100vh;
+  /* Aurora — fixed background, subtly layered */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(ellipse 80% 60% at 80% 0%, rgba(212, 255, 58, 0.08), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 0% 100%, rgba(125, 211, 252, 0.05), transparent 60%),
+      radial-gradient(circle at 50% 50%, rgba(251, 191, 119, 0.02), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Grain — kills the flatness of the dark surface */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: var(--grain-opacity);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(212, 255, 58, 0.25);
+    color: #f5f7fa;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(212, 255, 58, 0.2); }
+}
+
+@layer components {
+  /* Reusable glass card — multi-layer depth */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+      0 1px 2px 0 rgba(0, 0, 0, 0.25);
+    transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                background 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(212, 255, 58, 0.25);
+  }
+
+  /* Section divider — editorial style */
+  .section-rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .section-rule::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(255,255,255,0.08), transparent);
   }
 }
