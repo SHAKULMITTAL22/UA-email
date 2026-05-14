@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, AlertCircle, Plus } from "lucide-react";
+import { Sparkles, AlertCircle, Plus, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,33 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
       `Triaged ${sync.processed} message${sync.processed === 1 ? "" : "s"} · cache hit ${(sync.cacheHitRate * 100).toFixed(0)}%`,
     );
   }, [sync]);
+
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  async function handleLoadOlder() {
+    if (!accounts || accounts.length === 0) return;
+    setLoadingOlder(true);
+    try {
+      const { loadOlder } = await import("@/lib/sync/sync-engine");
+      const targets =
+        activeAccountId && activeAccountId !== "unified"
+          ? accounts.filter((a) => a.id === activeAccountId)
+          : accounts;
+      let total = 0;
+      for (const acct of targets) {
+        const r = await loadOlder(acct);
+        total += r.fetched;
+      }
+      toast.success(
+        total > 0
+          ? `Fetched ${total} older message${total === 1 ? "" : "s"}`
+          : "No older messages found",
+      );
+    } catch (e) {
+      toast.error(`Failed: ${e instanceof Error ? e.message : "unknown"}`);
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
 
   const filtered = (() => {
     if (!triaged || !searchQuery.trim()) return triaged;
@@ -214,6 +241,20 @@ export function TriagedInboxView({ activeAccountId, searchQuery = "", onAddAccou
             <Skeleton className="h-20 w-full rounded-card bg-card" />
             <Skeleton className="h-20 w-full rounded-card bg-card opacity-60" />
           </>
+        )}
+
+        {!noAccounts && accounts && accounts.length > 0 && (
+          <div className="flex justify-center pt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void handleLoadOlder()}
+              disabled={loadingOlder}
+            >
+              <RotateCw className={cn("h-3.5 w-3.5 mr-1.5", loadingOlder && "animate-spin")} />
+              {loadingOlder ? "Loading older messages…" : "Load older messages"}
+            </Button>
+          </div>
         )}
       </div>
 

@@ -12,6 +12,11 @@ export interface SyncResult {
   errorReason?: string;
 }
 
+export interface LoadOlderResult {
+  fetched: number;
+  hasMore: boolean;
+}
+
 // Demo account id is a sentinel — its messages are seeded locally;
 // no remote IMAP server exists to connect to.
 const DEMO_ACCOUNT_ID = "demo-account";
@@ -56,5 +61,43 @@ export async function syncAccount(account: Account, limit = 50): Promise<SyncRes
       errored: true,
       errorReason: err instanceof Error ? err.message : "unknown",
     };
+  }
+}
+
+/**
+ * Page backwards from the stored providerCursor and persist the next cursor
+ * for subsequent calls. Used by the "Load older messages" UI affordance.
+ */
+export async function loadOlder(account: Account): Promise<LoadOlderResult> {
+  if (account.id === DEMO_ACCOUNT_ID) {
+    return { fetched: 0, hasMore: false };
+  }
+  const db = getDB();
+  const cursor = await db.syncCursors.get(account.id);
+  const provider = makeProvider(account);
+
+  try {
+    const { messages, nextCursor } = await provider.list({
+      ...(cursor?.providerCursor ? { cursor: cursor.providerCursor } : {}),
+      limit: 50,
+    });
+    if (messages.length === 0) {
+      return { fetched: 0, hasMore: false };
+    }
+
+    const rows: MessageRow[] = messages.map((m) => ({ ...m }));
+    await db.messages.bulkPut(rows);
+
+    if (nextCursor) {
+      await db.syncCursors.put({
+        accountId: account.id,
+        providerCursor: nextCursor,
+        lastFullSyncAt: Date.now(),
+      });
+    }
+
+    return { fetched: messages.length, hasMore: Boolean(nextCursor) };
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : "loadOlder failed");
   }
 }
