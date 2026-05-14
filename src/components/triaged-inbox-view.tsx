@@ -8,6 +8,7 @@ import { motion as motionTokens } from "@/styles/motion-tokens";
 import { useSync } from "@/hooks/use-sync";
 import { useTriagedInbox } from "@/hooks/use-triaged-inbox";
 import { useAccounts } from "@/hooks/use-accounts";
+import { useSettings } from "@/hooks/use-settings";
 import { TriageCard } from "@/components/triage-card";
 import type { Bucket } from "@/lib/types/message";
 
@@ -22,7 +23,13 @@ const BUCKET_META: Record<Bucket | "unclassified", { label: string; color: strin
 export function TriagedInboxView({ activeAccountId, searchQuery = "" }: { activeAccountId?: string | "unified"; searchQuery?: string }) {
   const accounts = useAccounts();
   const triaged = useTriagedInbox(activeAccountId);
-  const sync = useSync({ intervalSec: 60 });
+  const { settings } = useSettings();
+  const byokKey = settings.byok[settings.llmProvider];
+  const sync = useSync({
+    intervalSec: settings.syncIntervalSec,
+    provider: settings.llmProvider,
+    ...(byokKey ? { byok: byokKey } : {}),
+  });
 
   const noAccounts = (accounts?.length ?? 0) === 0;
 

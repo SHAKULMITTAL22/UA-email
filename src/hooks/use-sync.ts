@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { startSyncLoop } from "@/lib/sync/sync-loop";
+import { startSyncLoop, runOnce } from "@/lib/sync/sync-loop";
 
 interface TickInfo {
   processed: number;
@@ -9,19 +9,29 @@ interface TickInfo {
   lastAt: number;
 }
 
-export function useSync(opts: { intervalSec?: number } = {}): TickInfo | null {
+export interface UseSyncOptions {
+  intervalSec?: number;
+  provider?: "anthropic" | "openai" | "gemini";
+  byok?: string;
+}
+
+export function useSync(opts: UseSyncOptions = {}): TickInfo | null {
   const [info, setInfo] = useState<TickInfo | null>(null);
 
   useEffect(() => {
     if (typeof indexedDB === "undefined") return;
-    const stop = startSyncLoop({
+    const loopOpts = {
       ...(opts.intervalSec ? { intervalSec: opts.intervalSec } : {}),
-      onTick: (t) => setInfo({ ...t, lastAt: Date.now() }),
-    });
+      ...(opts.provider ? { provider: opts.provider } : {}),
+      ...(opts.byok ? { byok: opts.byok } : {}),
+      onTick: (t: { processed: number; cacheHitRate: number; errors: string[] }) =>
+        setInfo({ ...t, lastAt: Date.now() }),
+    };
+    const stop = startSyncLoop(loopOpts);
 
     const onFocus = () => {
       if (document.visibilityState === "visible") {
-        void import("@/lib/sync/sync-loop").then((m) => m.runOnce());
+        void runOnce(loopOpts);
       }
     };
     document.addEventListener("visibilitychange", onFocus);
@@ -30,7 +40,7 @@ export function useSync(opts: { intervalSec?: number } = {}): TickInfo | null {
       stop();
       document.removeEventListener("visibilitychange", onFocus);
     };
-  }, [opts.intervalSec]);
+  }, [opts.intervalSec, opts.provider, opts.byok]);
 
   return info;
 }
