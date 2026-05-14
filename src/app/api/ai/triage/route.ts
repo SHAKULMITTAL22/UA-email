@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { Bucket } from "@/lib/types/message";
+import { makeLLM } from "@/lib/ai/factory";
+import { LLMError } from "@/lib/ai/llm-provider";
+import { snapshotMetrics } from "@/lib/ai/metrics";
 
-const TriageRequest = z.object({
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+export const TriageRequest = z.object({
   provider: z.enum(["anthropic", "openai", "gemini"]).optional(),
   byok: z.string().optional(),
+  model: z.string().optional(),
   emails: z
     .array(
       z.object({
@@ -19,19 +25,6 @@ const TriageRequest = z.object({
     .max(20),
 });
 
-const TriageResult = z.object({
-  messageId: z.string(),
-  bucket: Bucket,
-  summary: z.string().max(140),
-  suggestedReply: z.string().max(500).nullable(),
-});
-
-export const TriageResponse = z.object({
-  results: z.array(TriageResult),
-  model: z.string(),
-  promptCacheHit: z.boolean(),
-});
-
 export async function POST(req: Request) {
   let body: unknown;
   try {
@@ -42,21 +35,47 @@ export async function POST(req: Request) {
 
   const parsed = TriageRequest.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "validation_failed", issues: parsed.error.issues }, { status: 400 });
+    return NextResponse.json(
+      { error: "validation_failed", issues: parsed.error.issues },
+      { status: 400 },
+    );
   }
 
-  // STUB: real LLM call lands with ai-agent. Phase-1 returns an empty
-  // result set so the sync engine can run end-to-end against the stub.
-  const stub: z.infer<typeof TriageResponse> = {
-    results: parsed.data.emails.map((e) => ({
-      messageId: e.messageId,
-      bucket: "fyi" as const,
-      summary: "(triage pending — AI not wired in this build)",
-      suggestedReply: null,
-    })),
-    model: "stub",
-    promptCacheHit: false,
-  };
+  try {
+    const llm = makeLLM({
+      ...(parsed.data.provider ? { provider: parsed.data.provider } : {}),
+      ...(parsed.data.byok ? { apiKey: parsed.data.byok } : {}),
+      ...(parsed.data.model ? { model: parsed.data.model } : {}),
+    });
 
-  return NextResponse.json(stub);
+    const results = await llm.triageBatch(parsed.data.emails);
+    const metrics = snapshotMetrics()[llm.id];
+    return NextResponse.json({
+      results,
+      model: llm.model,
+      promptCacheHit: results.length > 0 && results[0]!.promptCacheHit,
+      cacheHitRate: metrics?.hitRate ?? 0,
+    });
+  } catch (err) {
+    if (err instanceof LLMError) {
+      const status =
+        err.cause === "auth"
+          ? 401
+          : err.cause === "rate_limit"
+            ? 429
+            : err.cause === "schema"
+              ? 502
+              : err.cause === "network"
+                ? 502
+                : 500;
+      return NextResponse.json(
+        { error: err.cause, message: err.message, retryable: err.retryable },
+        { status },
+      );
+    }
+    return NextResponse.json(
+      { error: "unknown", message: (err as Error).message },
+      { status: 500 },
+    );
+  }
 }
