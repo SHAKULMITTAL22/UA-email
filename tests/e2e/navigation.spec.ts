@@ -15,7 +15,7 @@ test.describe("Navigation", () => {
     await page.locator('a[href="/settings"]').click();
     await expect(page).toHaveURL(/\/settings/);
     await expect(page.getByRole("heading", { name: /Settings/i, level: 1 })).toBeVisible();
-    await expect(page.getByText(/Default LLM/i)).toBeVisible();
+    await expect(page.getByText(/Active LLM/i)).toBeVisible();
   });
 
   test("search bar accepts input", async ({ page }) => {
