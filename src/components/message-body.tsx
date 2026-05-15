@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, FileText, Code2 } from "lucide-react";
 
 interface Props {
   bodyHtml?: string;
@@ -66,6 +66,7 @@ export function MessageBody({ bodyHtml, bodyText }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [showImages, setShowImages] = useState(false);
   const [hasImages, setHasImages] = useState(false);
+  const [viewAsText, setViewAsText] = useState(false);
 
   const sanitized = useMemo(() => {
     if (!bodyHtml) return null;
@@ -94,8 +95,39 @@ export function MessageBody({ bodyHtml, bodyText }: Props) {
   // subsequent re-renders. Gmail-style: images stay blocked until opt-in.
   useEffect(() => {
     const root = ref.current;
-    if (!root || sanitized === null) return;
+    if (!root || sanitized === null || viewAsText) return;
     root.innerHTML = sanitized;
+
+    // Flatten layout tables: kill borders, padding, cellspacing,
+    // and inline width/height attrs that turn the email into a grid of empty boxes.
+    Array.from(root.querySelectorAll("table")).forEach((t) => {
+      t.removeAttribute("border");
+      t.removeAttribute("cellpadding");
+      t.removeAttribute("cellspacing");
+      t.removeAttribute("width");
+      t.removeAttribute("height");
+      t.removeAttribute("bgcolor");
+      t.style.border = "none";
+      t.style.borderCollapse = "collapse";
+      t.style.borderSpacing = "0";
+      t.style.maxWidth = "100%";
+    });
+    Array.from(root.querySelectorAll("td, th, tr, tbody, thead, tfoot")).forEach((c) => {
+      const el = c as HTMLElement;
+      el.removeAttribute("border");
+      el.removeAttribute("width");
+      el.removeAttribute("height");
+      el.removeAttribute("bgcolor");
+      el.style.border = "none";
+      el.style.background = "transparent";
+    });
+
+    // Strip empty layout cells so we don't render their borders/padding.
+    Array.from(root.querySelectorAll("td, p, div")).forEach((el) => {
+      const e = el as HTMLElement;
+      const isEmpty = e.textContent?.trim() === "" && e.querySelector("img,a,button,input") === null;
+      if (isEmpty) e.remove();
+    });
 
     const imgs = Array.from(root.querySelectorAll("img"));
     setHasImages(imgs.length > 0);
@@ -105,7 +137,11 @@ export function MessageBody({ bodyHtml, bodyText }: Props) {
         const current = img.getAttribute("src");
         if (current) img.dataset["originalSrc"] = current;
         img.removeAttribute("src");
+        // display:none so the placeholder box doesn't render
         img.style.display = "none";
+        // also kill any sized parent figure that wraps a single hidden image
+        const fig = img.closest("figure");
+        if (fig && fig.querySelectorAll("img").length === 1) (fig as HTMLElement).style.display = "none";
       });
     } else {
       imgs.forEach((img) => {
@@ -116,6 +152,8 @@ export function MessageBody({ bodyHtml, bodyText }: Props) {
         img.referrerPolicy = "no-referrer";
         img.style.maxWidth = "100%";
         img.style.height = "auto";
+        const fig = img.closest("figure");
+        if (fig) (fig as HTMLElement).style.display = "";
       });
     }
 
@@ -130,7 +168,7 @@ export function MessageBody({ bodyHtml, bodyText }: Props) {
         a.rel = "noopener noreferrer";
       }
     });
-  }, [sanitized, showImages]);
+  }, [sanitized, showImages, viewAsText]);
 
   if (!sanitized) {
     return (
@@ -142,30 +180,55 @@ export function MessageBody({ bodyHtml, bodyText }: Props) {
 
   return (
     <div className="space-y-3">
-      <button
-        key="image-toggle"
-        type="button"
-        onClick={() => setShowImages((v) => !v)}
-        hidden={!hasImages}
-        className="inline-flex items-center gap-1.5 rounded-md border border-cardBorder bg-canvasSecondary px-2.5 py-1 text-xs font-medium text-textSecondary transition-colors hover:border-aiAccent hover:text-aiAccent"
-      >
-        <ImageIcon className="h-3 w-3" />
-        {showImages ? "Hide images" : "Show images"}
-      </button>
-      <div
-        key="message-html"
-        ref={ref}
-        className="prose prose-sm prose-slate max-w-none text-textPrimary/90
-          [&_a]:text-aiAccent [&_a]:underline [&_a]:decoration-aiAccent/30 hover:[&_a]:decoration-aiAccent
-          [&_img]:rounded-md [&_img]:my-2
-          [&_blockquote]:border-l-2 [&_blockquote]:border-cardBorder [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-textMuted
-          [&_table]:text-xs [&_table]:border-collapse [&_table_td]:border [&_table_td]:border-cardBorder [&_table_td]:px-2 [&_table_td]:py-1
-          [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm
-          [&_pre]:bg-canvasTinted [&_pre]:p-3 [&_pre]:rounded-md [&_pre]:overflow-x-auto [&_pre]:text-xs
-          [&_code]:bg-canvasTinted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs"
-      />
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setShowImages((v) => !v)}
+          hidden={!hasImages || viewAsText}
+          className="inline-flex items-center gap-1.5 rounded-md border border-cardBorder bg-canvasSecondary px-2.5 py-1 text-xs font-medium text-textSecondary transition-colors hover:border-aiAccent hover:text-aiAccent"
+        >
+          <ImageIcon className="h-3 w-3" />
+          {showImages ? "Hide images" : "Show images"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewAsText((v) => !v)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-cardBorder bg-canvasSecondary px-2.5 py-1 text-xs font-medium text-textSecondary transition-colors hover:border-aiAccent hover:text-aiAccent"
+          title="Switch between rendered HTML and plain-text view"
+        >
+          {viewAsText ? <Code2 className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
+          {viewAsText ? "View HTML" : "Plain text"}
+        </button>
+      </div>
+
+      {viewAsText ? (
+        <div className="prose prose-sm prose-slate max-w-none whitespace-pre-wrap text-textPrimary/90 [&_a]:text-aiAccent [&_a]:underline">
+          {linkifyText(bodyText || stripHtml(sanitized))}
+        </div>
+      ) : (
+        <div
+          ref={ref}
+          className="prose prose-sm prose-slate max-w-none text-textPrimary/90
+            [&_a]:text-aiAccent [&_a]:underline [&_a]:decoration-aiAccent/30 hover:[&_a]:decoration-aiAccent
+            [&_img]:rounded-md [&_img]:my-2
+            [&_blockquote]:border-l-2 [&_blockquote]:border-cardBorder [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-textMuted
+            [&_table]:!border-0 [&_table]:!border-spacing-0 [&_table]:my-1
+            [&_td]:!border-0 [&_td]:!p-1 [&_th]:!border-0 [&_th]:!p-1
+            [&_tr]:!border-0
+            [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm
+            [&_pre]:bg-canvasTinted [&_pre]:p-3 [&_pre]:rounded-md [&_pre]:overflow-x-auto [&_pre]:text-xs
+            [&_code]:bg-canvasTinted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs"
+        />
+      )}
     </div>
   );
+}
+
+function stripHtml(html: string): string {
+  if (typeof document === "undefined") return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return (div.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
 function linkifyText(text: string): React.ReactNode {
