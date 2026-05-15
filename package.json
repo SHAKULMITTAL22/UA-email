@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "capture-hero": "tsx scripts/capture-screenshot.ts",
     "video:cards": "tsx scripts/video/lib/render-cards.ts",
+    "video:serve": "next build && next start -p 3000",
     "video:capture": "tsx scripts/video/capture.ts",
     "video:tts": "tsx scripts/video/tts.ts",
     "video:assemble": "tsx scripts/video/assemble.ts",
