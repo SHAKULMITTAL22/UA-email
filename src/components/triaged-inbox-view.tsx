@@ -86,9 +86,15 @@ export function TriagedInboxView({
   const addAccountMagnetRef = useMagnetic<HTMLButtonElement>();
   const demoMagnetRef = useMagnetic<HTMLButtonElement>();
   const byokKey = settings.byok[settings.llmProvider];
+  // Only start the sync loop once we have a key for the active provider.
+  // This prevents the initial-render race that previously posted requests
+  // with no provider/byok and produced spurious "Anthropic API key not
+  // configured" errors before settings loaded from IndexedDB.
+  const aiReady = Boolean(byokKey);
   const sync = useSync({
     intervalSec: settings.syncIntervalSec,
     provider: settings.llmProvider,
+    enabled: aiReady,
     ...(byokKey ? { byok: byokKey } : {}),
   });
 
@@ -274,6 +280,30 @@ export function TriagedInboxView({
                 "The model returned malformed JSON. Try a different model."}
               {sync.aiError.cause === "network" &&
                 "Provider is unreachable. Will retry next tick."}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {hasAccounts && !aiReady ? (
+        <div
+          className="flex items-start gap-2 rounded-card border border-aiAccentBorder bg-aiAccentSoft p-3 text-sm text-aiAccentDeep"
+          role="status"
+        >
+          <Sparkles className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="font-medium">AI triage is paused.</div>
+            <p className="mt-1 text-xs text-aiAccentDeep/80">
+              No API key set for{" "}
+              <strong>
+                {settings.llmProvider === "anthropic"
+                  ? "Anthropic Claude"
+                  : settings.llmProvider === "openai"
+                    ? "OpenAI"
+                    : "Google Gemini"}
+              </strong>
+              . Add one in Settings -&gt; Save &amp; verify, and triage will start
+              automatically.
             </p>
           </div>
         </div>

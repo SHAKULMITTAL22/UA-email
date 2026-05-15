@@ -14,6 +14,10 @@ export interface UseSyncOptions {
   intervalSec?: number;
   provider?: "anthropic" | "openai" | "gemini";
   byok?: string;
+  /** When false, the sync loop is paused. Used to avoid firing AI calls
+   *  before settings have loaded (which would otherwise default to Anthropic
+   *  with no key and produce a spurious auth error). */
+  enabled?: boolean;
 }
 
 export function useSync(opts: UseSyncOptions = {}): TickInfo | null {
@@ -21,6 +25,10 @@ export function useSync(opts: UseSyncOptions = {}): TickInfo | null {
 
   useEffect(() => {
     if (typeof indexedDB === "undefined") return;
+    if (opts.enabled === false) return;
+    // Don't start the loop without an explicit provider — prevents the
+    // initial-render race that posts a request with no provider and no key.
+    if (!opts.provider) return;
     const loopOpts = {
       ...(opts.intervalSec ? { intervalSec: opts.intervalSec } : {}),
       ...(opts.provider ? { provider: opts.provider } : {}),
@@ -52,7 +60,7 @@ export function useSync(opts: UseSyncOptions = {}): TickInfo | null {
       stop();
       document.removeEventListener("visibilitychange", onFocus);
     };
-  }, [opts.intervalSec, opts.provider, opts.byok]);
+  }, [opts.intervalSec, opts.provider, opts.byok, opts.enabled]);
 
   return info;
 }
