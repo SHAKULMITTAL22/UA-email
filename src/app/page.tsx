@@ -26,6 +26,9 @@ export default function HomePage() {
       <Suspense fallback={null}>
         <AuthCallback />
       </Suspense>
+      <Suspense fallback={null}>
+        <DemoAutoLoad />
+      </Suspense>
       <AppShell
         filter={filter}
         onFilterChange={setFilter}
@@ -66,6 +69,26 @@ export default function HomePage() {
       />
     </>
   );
+}
+
+// Demo auto-load: when the URL has ?demo=auto, seed the demo inbox silently
+// on first render and strip the query param. Used by the video capture pipeline
+// to land directly on a populated triaged inbox without ever showing Settings.
+function DemoAutoLoad() {
+  const params = useSearchParams();
+  useEffect(() => {
+    if (params.get("demo") !== "auto") return;
+    (async () => {
+      try {
+        const { loadDemoInbox } = await import("@/lib/demo/load-demo");
+        await loadDemoInbox();
+        history.replaceState(null, "", "/");
+      } catch {
+        /* silent — the rest of the app still works */
+      }
+    })();
+  }, [params]);
+  return null;
 }
 
 function AuthCallback() {
