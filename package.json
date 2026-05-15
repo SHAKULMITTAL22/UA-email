@@ -18,7 +18,7 @@
     "video:capture": "tsx scripts/video/capture.ts",
     "video:tts": "tsx scripts/video/tts.ts",
     "video:assemble": "tsx scripts/video/assemble.ts",
-    "video": "pnpm video:cards && pnpm video:capture && pnpm video:tts && pnpm video:assemble"
+    "video": "pnpm video:cards && pnpm video:tts && pnpm video:capture && pnpm video:assemble"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
