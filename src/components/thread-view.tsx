@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ComposeDrawer } from "@/components/compose-drawer";
+import { MessageBody } from "@/components/message-body";
 import { useThread } from "@/hooks/use-thread";
 import { useSettings } from "@/hooks/use-settings";
 import { applyLabel } from "@/lib/actions/label-actions";
@@ -80,28 +81,35 @@ export function ThreadView({ threadId }: { threadId: string }) {
   }
 
   const uniqueFroms = thread.messages
-    .map((m) => m.from.email)
+    .map((m) => m.from.name ?? m.from.email)
     .filter((v, i, a) => a.indexOf(v) === i)
     .join(", ");
 
   return (
-    <article className="space-y-6">
-      <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-textMuted hover:text-textPrimary">
+    <article className="mx-auto max-w-3xl space-y-6">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1.5 text-sm text-textMuted transition-colors hover:text-aiAccent"
+      >
         <ChevronLeft className="h-4 w-4" /> Back to inbox
       </Link>
 
-      <header className="space-y-2">
+      <header className="space-y-3 border-b border-cardBorder pb-6">
         <h1 className="font-display text-3xl leading-tight text-textPrimary sm:text-4xl">
           {lastMessage.subject}
         </h1>
-        <p className="text-sm text-textMuted">
-          {thread.messages.length} message{thread.messages.length === 1 ? "" : "s"} · {uniqueFroms}
-        </p>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-textMuted">
+          <span className="font-mono text-xs">
+            {thread.messages.length} message{thread.messages.length === 1 ? "" : "s"}
+          </span>
+          <span className="text-textDim">·</span>
+          <span className="truncate">{uniqueFroms}</span>
+        </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {lastMessage.labels.map((l) => (
             <span
               key={l}
-              className="inline-flex items-center gap-1 rounded-full border border-aiAccentBorder bg-aiAccentSoft px-2 py-0.5 text-[10px] font-medium tracking-wide text-aiAccentDeep"
+              className="inline-flex items-center gap-1 rounded border border-aiAccentBorder bg-aiAccentSoft px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-aiAccentDeep"
             >
               {l}
               <button
@@ -120,24 +128,79 @@ export function ThreadView({ threadId }: { threadId: string }) {
       <div className="space-y-3">
         {thread.messages.map((m, i) => {
           const ai = thread.aiByMessage[m.id];
+          const isLatest = i === thread.messages.length - 1;
+          const initial = (m.from.name?.[0] ?? m.from.email[0] ?? "?").toUpperCase();
           return (
             <motion.section
               key={m.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: motionTokens.duration.base, delay: i * 0.03, ease: motionTokens.ease.out }}
-              className="rounded-card border border-cardBorder bg-card p-4 shadow-card"
+              transition={{
+                duration: motionTokens.duration.base,
+                delay: i * 0.03,
+                ease: motionTokens.ease.out,
+              }}
+              className="overflow-hidden rounded-card border border-cardBorder bg-card shadow-card"
             >
-              <header className="flex items-baseline justify-between text-sm">
-                <span className="font-medium text-textPrimary">{m.from.name ?? m.from.email}</span>
-                <span className="font-mono text-xs text-textDim">{new Date(m.receivedAt).toLocaleString()}</span>
+              <header className="flex items-start gap-3 border-b border-cardBorder p-4">
+                <div
+                  aria-hidden
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-aiAccentSoft text-sm font-semibold text-aiAccent"
+                >
+                  {initial}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="truncate font-medium text-textPrimary">
+                      {m.from.name ?? m.from.email}
+                    </span>
+                    <span className="flex-shrink-0 font-mono text-xs text-textDim">
+                      {new Date(m.receivedAt).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  {m.from.name && (
+                    <div className="truncate font-mono text-xs text-textDim">{m.from.email}</div>
+                  )}
+                  {m.to.length > 0 && (
+                    <div className="mt-0.5 truncate text-xs text-textMuted">
+                      to {m.to.map((a) => a.name ?? a.email).join(", ")}
+                    </div>
+                  )}
+                </div>
               </header>
-              {ai && (
-                <p className="mt-2 flex items-center gap-1.5 font-display text-[13px] italic text-aiAccentDeep">
-                  <Sparkles className="h-3.5 w-3.5 text-aiAccent" aria-hidden /> {ai.summary}
-                </p>
+
+              {isLatest && ai && (ai.detailedSummary || ai.summary) && (
+                <div className="border-b border-aiAccentBorder bg-aiAccentSoft/40 p-4">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-aiAccent" aria-hidden />
+                    <div className="flex-1 space-y-1">
+                      <div className="text-[10px] font-medium uppercase tracking-wider text-aiAccent">
+                        AI summary
+                      </div>
+                      <p className="font-display text-sm italic leading-relaxed text-aiAccentDeep">
+                        {ai.detailedSummary ?? ai.summary}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
-              <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-textPrimary">{m.body}</div>
+
+              {!isLatest && ai && (
+                <div className="border-b border-cardBorder px-4 py-2">
+                  <p className="flex items-center gap-1.5 font-display text-xs italic text-aiAccent">
+                    <Sparkles className="h-3 w-3" aria-hidden /> {ai.summary}
+                  </p>
+                </div>
+              )}
+
+              <div className="p-4 text-sm leading-relaxed">
+                <MessageBody bodyText={m.body} {...(m.bodyHtml ? { bodyHtml: m.bodyHtml } : {})} />
+              </div>
             </motion.section>
           );
         })}
@@ -163,7 +226,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
           onChange={(e) => setDraft(e.target.value)}
           rows={6}
           aria-label="Reply body"
-          className="w-full bg-canvasSecondary border border-cardBorder rounded-card p-3 text-sm text-textPrimary placeholder:text-textDim resize-none focus:outline-none focus:border-aiAccent focus:ring-1 focus:ring-aiAccent/30"
+          className="w-full resize-none rounded-card border border-cardBorder bg-canvasSecondary p-3 text-sm text-textPrimary placeholder:text-textDim focus:border-aiAccent focus:outline-none focus:ring-1 focus:ring-aiAccent/30"
           placeholder={suggestedReply ? "" : "Write a reply…"}
         />
         <div className="flex justify-end gap-2">
@@ -193,7 +256,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
 
 function ThreadSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       <Skeleton className="h-8 w-32 skeleton-shimmer" />
       <Skeleton className="h-32 w-full skeleton-shimmer" />
       <Skeleton className="h-32 w-full skeleton-shimmer opacity-70" />
@@ -252,4 +315,3 @@ function LabelAdder({ onAdd }: { onAdd: (name: string) => void }) {
     </span>
   );
 }
-
