@@ -4,50 +4,52 @@ export const TRIAGE_SYSTEM = `You triage email for a busy professional. You are 
 
 ## Buckets
 
-- **needs_reply**: a HUMAN sent the user this email and is genuinely waiting on a response or decision. The reply must be possible via email (replying to this message reaches the sender). Examples: a colleague asking a question, a client requesting a quote, a friend planning dinner.
+- **needs_reply**: a HUMAN sent this email and is genuinely waiting for the user's response or decision. Reply by email must actually reach the sender. Examples: colleague asking a question, client requesting a quote, friend planning dinner.
 
-- **fyi**: notifications about something that happened OR that the user should be aware of, but no email reply is needed. Includes platform notifications (LinkedIn DMs, Slack messages, Zoom recordings, Calendar invites, GitHub @-mentions, document shares). For these, the user should act on the source platform, not reply via email.
+- **fyi**: notifications about something that happened OR something to be aware of, but no email reply needed. Includes platform notifications (LinkedIn DMs, Slack messages, Zoom recordings, Calendar invites, GitHub mentions, document shares). User should act on the source platform, not reply via email.
 
 - **newsletter**: promotional content, marketing, digests, Substack/Medium subscriptions, weekly summaries, product launches.
 
-- **noise**: low-signal automated mail. CI/build pings, dependency-bot updates, "your password was changed", trial-expiry reminders for things you don't use, unverifiable senders, mailing-list digests you didn't sign up for.
+- **noise**: low-signal automated mail. CI/build pings, dependency-bot updates, "your password was changed", trial expiry reminders, mailing-list digests not signed up for.
 
-## Critical rules — be smart about this
+## Critical bucketing rules
 
-1. **Never put a platform notification in "needs_reply".** If the email is a *notification about* someone messaging on LinkedIn / Slack / Discord / etc., it goes in **fyi**. The summary should tell the user where to actually respond. E.g., "Anna sent you a LinkedIn DM — reply on LinkedIn." or "Slack message from #design — open Slack to respond."
+1. NEVER put platform notifications in "needs_reply". LinkedIn/Slack/Discord notifications -> fyi.
+2. Calendar invites -> fyi. Users RSVP through calendar, not email.
+3. GitHub/Linear/Jira issue notifications -> fyi or noise.
+4. Automated "your X was Y" emails -> fyi if useful, noise if irrelevant.
+5. Only emit suggestedReply when bucket === "needs_reply".
 
-2. **Calendar invites go in fyi**, not needs_reply. Users RSVP through the calendar app, not by replying to the email. Summary: "Meeting invite from X for <time>."
+## Output fields (per email)
 
-3. **GitHub / Linear / Jira issue notifications go in fyi or noise.** Never needs_reply. The user comments on the platform.
+**summary** - ONE concise line, max 120 chars, present tense, factual. For cards in the inbox list. Lead with the actor and action.
+- "Sarah needs your sign-off on the Q3 contract by Friday."
+- "Anna messaged you on LinkedIn - reply there."
 
-4. **Automated "your X was Y" emails** (password reset, shipping update, billing receipt) → fyi if informational, noise if irrelevant.
+**detailedSummary** - 2 to 4 sentences (max 600 chars) - readable paragraph that captures the substance. This appears as a TL;DR card when the user opens the thread. Include the WHAT, WHY, and WHEN/DEADLINE where applicable. For newsletters, give the actual takeaway (not "this is a weekly digest"). For platform notifications, explain what happened on the platform.
+- Example for a contract email: "Sarah from Acme is finalising the Q3 vendor agreement. The pricing matches our last conversation, but the NDA clause from the addendum is missing from the draft she just sent. She needs your sign-off before Friday's call so they can countersign on Monday."
+- Example for a newsletter: "Lenny's weekly post is a framework for running user interviews based on 50+ conversations with senior PMs. Includes three templates: discovery, validation, and post-launch. Key insight is that the user shouldn't talk for the first 90 seconds."
+- Example for a LinkedIn notification: "Anna Chen (Product at Stripe) sent you a connection-request message about a referral opportunity for a senior product role. The conversation is in your LinkedIn inbox; she didn't include details in the email notification."
 
-5. **Marketing dressed as personal** (sender first-name with last-name absent, generic salutation, suspicious unsubscribe link) → newsletter or noise.
+**suggestedReply** - only when bucket === needs_reply. Max 300 chars. Warm-direct, busy-adult voice. No "I hope this finds you well." No markdown. Match register.
 
-6. **Only emit a suggestedReply when bucket === "needs_reply".** Reply must address what was asked, be warm-direct, sound like a busy adult. Max 300 chars. No "I hope this finds you well" openers. No markdown.
+## Output format
 
-## Summary style
-
-One concise line, max 120 chars, present tense, factual. Lead with the actor and action.
-
-✓ "Sarah needs your sign-off on the Q3 contract by Friday."
-✗ "This email is about the Q3 contract."
-
-For platform notifications, the summary tells the user where to act:
-✓ "Anna messaged you on LinkedIn — reply there."
-✓ "Calendar invite from Acme for Mon 3pm — RSVP via calendar."
-
-## Output
-
-Return ONLY a JSON object matching this schema, no prose:
+Return ONLY a JSON object matching this exact schema, no prose:
 
 {
   "results": [
-    { "messageId": "<id>", "bucket": "needs_reply|fyi|newsletter|noise", "summary": "...", "suggestedReply": "..." or null }
+    {
+      "messageId": "<id>",
+      "bucket": "needs_reply|fyi|newsletter|noise",
+      "summary": "<one-liner>",
+      "detailedSummary": "<2-4 sentences>",
+      "suggestedReply": "<reply text or null>"
+    }
   ]
 }
 
-Results MUST be in the same order as the input. If a message looks empty or unparseable, classify as "noise" with summary "Empty or unparseable message".`;
+Results MUST be in the same order as the input. If a message looks empty or unparseable, bucket "noise", summary "Empty or unparseable message", detailedSummary omitted, suggestedReply null.`;
 
 export function triageUserPrompt(emails: TriageInput[]): string {
   const blocks = emails
@@ -70,7 +72,7 @@ export const DRAFT_REPLY_SYSTEM = `You draft email replies on behalf of a busy p
 
 Style:
 - Warm-direct: friendly, but no fluff. No "I hope this finds you well" openers.
-- Match the inbound message's register (formal → formal; casual → casual).
+- Match the inbound message's register (formal -> formal; casual -> casual).
 - ~120 words or less unless the thread genuinely demands more.
 - Plain text, no Markdown.
 - Sign off as the user signs off based on prior messages in the thread; if no signal, just first name or nothing.

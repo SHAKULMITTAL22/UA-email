@@ -5,6 +5,7 @@ export const TriageItem = z.object({
   messageId: z.string(),
   bucket: Bucket,
   summary: z.string().max(140),
+  detailedSummary: z.string().max(600).optional(),
   suggestedReply: z.string().max(500).nullable(),
 });
 
