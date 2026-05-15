@@ -49,3 +49,8 @@ public/worker-*.js
 public/fallback-*.js
 
 .vercel
+
+# Demo video pipeline artifacts
+out/
+assets/intro/intro.png
+assets/outro/outro.png
