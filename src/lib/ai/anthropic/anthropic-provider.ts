@@ -69,6 +69,7 @@ export class AnthropicProvider implements LLMProvider {
         messageId: r.messageId,
         bucket: r.bucket,
         summary: r.summary,
+        ...(r.detailedSummary ? { detailedSummary: r.detailedSummary } : {}),
         suggestedReply: r.suggestedReply,
         model: this.model,
         processedAt: now,
