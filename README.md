@@ -4,13 +4,14 @@
 > Triaged inbox · Suggested replies · Three LLM vendors, swappable · Zero email at rest server-side.
 
 [![CI](https://img.shields.io/badge/CI-passing-green)](.github/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-22%20unit%20%2B%208%20e2e-blue)](#)
+[![Tests](https://img.shields.io/badge/tests-40%20unit%20%2B%208%20e2e-blue)](#)
 [![Accessibility](https://img.shields.io/badge/axe--core-0%20violations-success)](#)
+[![Commits](https://img.shields.io/badge/commits-147%20across%208%20agents-purple)](#)
 [![Stack](https://img.shields.io/badge/Next.js-15.5-black)](https://nextjs.org)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#)
 
 **Live demo:** https://ua-email-pee0qzfyj-shakulmittal22s-projects.vercel.app/
-**90-second tour:** <DEMO_VIDEO_URL> *(paste Loom link after recording per `docs/demo-video.md`)*
+**90-second tour:** <DEMO_VIDEO_URL> *(see step 1 below if this still shows the placeholder)*
 
 ---
 

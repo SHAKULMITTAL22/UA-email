@@ -1,30 +1,36 @@
 {
-  "captured_at": "2026-05-14",
+  "captured_at": "2026-05-16",
   "stack": "Next.js 15.5 + TS strict + Tailwind 3 + Dexie + Auth.js + Anthropic/OpenAI/Gemini SDKs",
   "tests": {
-    "unit": 22,
+    "unit": 40,
     "e2e_chromium": 8,
+    "e2e_mobile": 8,
     "axe_violations": 0
   },
   "agents": {
+    "ui-agent": 47,
+    "ship-agent": 19,
     "infra-agent": 17,
-    "ui-agent": 13,
-    "test-agent": 11,
-    "ai-agent": 10,
-    "provider-agent": 9,
-    "pwa-agent": 6,
-    "doc-agent": 2,
-    "ship-agent": 1
+    "ai-agent": 15,
+    "test-agent": 12,
+    "provider-agent": 10,
+    "doc-agent": 9,
+    "pwa-agent": 7
   },
-  "commits_total": 76,
+  "commits_total": 147,
   "routes": {
     "static_pages": ["/", "/settings"],
     "dynamic_pages": ["/thread/[threadId]"],
     "api_routes": ["/api/auth/[...nextauth]", "/api/auth/handoff", "/api/imap", "/api/ai/triage", "/api/ai/draft"]
   },
   "design": {
-    "aesthetic": "Neo-Editorial Dark",
-    "ai_accent": "#a78bfa",
-    "fonts": ["Inter", "Fraunces (italic display)", "JetBrains Mono"]
+    "aesthetic": "Aurora Light",
+    "ai_accent": "#0066ff",
+    "fonts": ["Geist Sans", "Fraunces (italic display)", "Geist Mono"]
+  },
+  "extras": {
+    "demo_mode": "one-click seeded inbox (12 emails) — no API keys needed",
+    "ai_demo_video": "pnpm video generates a narrated 90s walkthrough (Playwright + ElevenLabs + FFmpeg)",
+    "ai_video_qa": "pnpm video:review uploads to Gemini 2.5 Pro for timestamped production critique"
   }
 }
