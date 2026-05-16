@@ -11,7 +11,9 @@
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#)
 
 **Live demo:** https://ua-email-pee0qzfyj-shakulmittal22s-projects.vercel.app/
-**90-second tour:** <DEMO_VIDEO_URL> *(see step 1 below if this still shows the placeholder)*
+**90-second tour:** https://github.com/SHAKULMITTAL22/UA-email/releases/download/v1.0.0/final.mp4
+**GitHub repo:** https://github.com/SHAKULMITTAL22/UA-email
+**Release notes:** https://github.com/SHAKULMITTAL22/UA-email/releases/tag/v1.0.0
 
 ---
 
