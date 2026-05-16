@@ -2,7 +2,7 @@
   "captured_at": "2026-05-16",
   "stack": "Next.js 15.5 + TS strict + Tailwind 3 + Dexie + Auth.js + Anthropic/OpenAI/Gemini SDKs",
   "tests": {
-    "unit": 40,
+    "unit": 26,
     "e2e_chromium": 8,
     "e2e_mobile": 8,
     "axe_violations": 0
@@ -30,7 +30,7 @@
   },
   "extras": {
     "demo_mode": "one-click seeded inbox (12 emails) — no API keys needed",
-    "ai_demo_video": "pnpm video generates a narrated 90s walkthrough (Playwright + ElevenLabs + FFmpeg)",
-    "ai_video_qa": "pnpm video:review uploads to Gemini 2.5 Pro for timestamped production critique"
+    "byok_supported": "users can paste their own Anthropic / OpenAI / Gemini key in Settings; keys stay in IndexedDB",
+    "live_llm_verification": "Settings -> Save & verify runs a one-message test against the chosen provider and persists the green status"
   }
 }

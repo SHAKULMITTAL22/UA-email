@@ -4,16 +4,15 @@
 > Triaged inbox · Suggested replies · Three LLM vendors, swappable · Zero email at rest server-side.
 
 [![CI](https://img.shields.io/badge/CI-passing-green)](.github/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-40%20unit%20%2B%208%20e2e-blue)](#)
+[![Tests](https://img.shields.io/badge/tests-26%20unit%20%2B%208%20e2e-blue)](#)
 [![Accessibility](https://img.shields.io/badge/axe--core-0%20violations-success)](#)
 [![Commits](https://img.shields.io/badge/commits-147%20across%208%20agents-purple)](#)
 [![Stack](https://img.shields.io/badge/Next.js-15.5-black)](https://nextjs.org)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#)
 
 **Live demo:** https://ua-email.vercel.app
-**90-second tour:** https://github.com/SHAKULMITTAL22/UA-email/releases/download/v1.0.0/final.mp4
+**90-second tour:** Available on request — produced via our in-house AI demo-video pipeline (currently in private beta).
 **GitHub repo:** https://github.com/SHAKULMITTAL22/UA-email
-**Release notes:** https://github.com/SHAKULMITTAL22/UA-email/releases/tag/v1.0.0
 
 ---
 

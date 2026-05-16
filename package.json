@@ -12,14 +12,7 @@
     "test:unit:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
-    "capture-hero": "tsx scripts/capture-screenshot.ts",
-    "video:cards": "tsx scripts/video/lib/render-cards.ts",
-    "video:serve": "next build && next start -p 3000",
-    "video:capture": "tsx scripts/video/capture.ts",
-    "video:tts": "tsx scripts/video/tts.ts",
-    "video:assemble": "tsx scripts/video/assemble.ts",
-    "video:review": "tsx scripts/video/review.ts",
-    "video": "pnpm video:cards && pnpm video:tts && pnpm video:capture && pnpm video:assemble"
+    "capture-hero": "tsx scripts/capture-screenshot.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
@@ -67,7 +60,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.0.3",
     "fake-indexeddb": "^6.2.5",
-    "ffmpeg-static": "^5.3.0",
     "happy-dom": "^20.9.0",
     "msw": "^2.14.6",
     "postcss": "^8.4.49",
