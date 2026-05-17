@@ -6,7 +6,7 @@
 [![CI](https://img.shields.io/badge/CI-passing-green)](.github/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-26%20unit%20%2B%208%20e2e-blue)](#)
 [![Accessibility](https://img.shields.io/badge/axe--core-0%20violations-success)](#)
-[![Commits](https://img.shields.io/badge/commits-147%20across%208%20agents-purple)](#)
+[![Commits](https://img.shields.io/badge/commits-136%20across%208%20agents-purple)](#)
 [![Stack](https://img.shields.io/badge/Next.js-15.5-black)](https://nextjs.org)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#)
 

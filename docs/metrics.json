@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-05-16",
+  "captured_at": "2026-05-17",
   "stack": "Next.js 15.5 + TS strict + Tailwind 3 + Dexie + Auth.js + Anthropic/OpenAI/Gemini SDKs",
   "tests": {
     "unit": 26,
@@ -9,15 +9,15 @@
   },
   "agents": {
     "ui-agent": 47,
-    "ship-agent": 19,
     "infra-agent": 17,
     "ai-agent": 15,
     "test-agent": 12,
     "provider-agent": 10,
-    "doc-agent": 9,
+    "doc-agent": 8,
+    "ship-agent": 8,
     "pwa-agent": 7
   },
-  "commits_total": 147,
+  "commits_total": 136,
   "routes": {
     "static_pages": ["/", "/settings"],
     "dynamic_pages": ["/thread/[threadId]"],
