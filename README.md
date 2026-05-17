@@ -6,12 +6,14 @@
 [![CI](https://img.shields.io/badge/CI-passing-green)](.github/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-26%20unit%20%2B%208%20e2e-blue)](#)
 [![Accessibility](https://img.shields.io/badge/axe--core-0%20violations-success)](#)
-[![Commits](https://img.shields.io/badge/commits-136%20across%208%20agents-purple)](#)
+[![Commits](https://img.shields.io/badge/commits-139%20across%208%20agents-purple)](#)
 [![Stack](https://img.shields.io/badge/Next.js-15.5-black)](https://nextjs.org)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#)
 
 **Live demo:** https://ua-email.vercel.app
 **GitHub repo:** https://github.com/SHAKULMITTAL22/UA-email
+
+![UA-Email — the triaged inbox is the home screen](docs/hero.png)
 
 ## 90-second tour
 
@@ -45,16 +47,24 @@ Gmail · Microsoft Graph · IMAP servers · Anthropic / OpenAI / Gemini
 
 Detail: [`docs/architecture.md`](docs/architecture.md). Spec: [`docs/superpowers/specs/2026-05-14-ua-email-design.md`](docs/superpowers/specs/2026-05-14-ua-email-design.md).
 
-## Built with Claude Code — multi-agent
+## Built with Claude Code — multi-agent, provable
 
-Eight specialist agents dispatched per phase, each owning a slice. The multi-agent narrative is provable: every commit is prefixed with the agent that produced it.
+Eight specialist agent personas, each owning a slice of the codebase. Every commit is prefixed with the agent that authored it — so the multi-agent claim is verifiable in `git log`, not just a marketing line.
 
-```bash
+```
 $ git log --pretty=format:"%s" | grep -oE '^\[[a-z-]+\]' | sort | uniq -c | sort -rn
+
+  47 [ui-agent]         layout, sidebar, triage cards, thread view, compose, settings
+  17 [infra-agent]      scaffold, design tokens, env, hooks, types + interfaces
+  15 [ai-agent]         LLM adapters, prompts, prompt caching, triage batcher
+  12 [test-agent]       Vitest + Playwright + MSW + fake-indexeddb + axe-core
+  10 [provider-agent]   Gmail / Outlook / IMAP + Auth.js handoff + SMTP
+   8 [doc-agent]        README, architecture, agents-skills-hooks, workflow
+   8 [ship-agent]       Vercel deploy, security headers, release pipeline
+   7 [pwa-agent]        Dexie schema, service worker, sync engine
 ```
 
-Agents · skills · hooks · plugins: [`docs/agents-skills-hooks.md`](docs/agents-skills-hooks.md).
-Build workflow + numbers: [`docs/workflow.md`](docs/workflow.md).
+Process: spec → plan → execute. Each phase produced a [spec](docs/superpowers/specs/) and [plan](docs/superpowers/plans/) before any code was written. See [`docs/workflow.md`](docs/workflow.md) for the build narrative, [`docs/agents-skills-hooks.md`](docs/agents-skills-hooks.md) for the full inventory of agents · skills · hooks · plugins used.
 
 ## Try it locally
 

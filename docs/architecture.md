@@ -1,30 +1,44 @@
 # UA-Email · Architecture (one page)
 
-> Live: https://ua-email-pee0qzfyj-shakulmittal22s-projects.vercel.app/  ·  Spec: [design-spec](superpowers/specs/2026-05-14-ua-email-design.md)
+> Live: https://ua-email.vercel.app  ·  Spec: [design-spec](superpowers/specs/2026-05-14-ua-email-design.md)
 
 ## Three tiers (no server-side state)
 
-```
-+---------------------------------------------------------------+
-|  Tier 1 — Browser (PWA)                                       |
-|  UI Shell · Sync Engine (idle loop) · Dexie/IndexedDB         |
-|  · Service Worker (offline shell) · Reactive UI (dexie-hooks) |
-+---------------------------------------------------------------+
-                |
-                |  HTTPS · stateless · zero email at rest server-side
-                v
-+---------------------------------------------------------------+
-|  Tier 2 — Vercel Functions (thin proxies)                     |
-|  /api/auth/[...nextauth] · /api/auth/handoff                  |
-|  /api/imap (ImapFlow)   · /api/ai/triage  · /api/ai/draft     |
-+---------------------------------------------------------------+
-                |
-                v
-+---------------------------------------------------------------+
-|  Tier 3 — External                                            |
-|  Gmail API · Microsoft Graph · IMAP servers                   |
-|  Anthropic Claude (default) · OpenAI · Gemini                 |
-+---------------------------------------------------------------+
+```mermaid
+flowchart TB
+    subgraph T1["Tier 1 — Browser (PWA)"]
+        UI[UI Shell<br/>Next.js + React 19 + Tailwind]
+        SYNC[Sync Engine<br/>idle-driven loop]
+        DB[(Dexie /<br/>IndexedDB)]
+        SW[Service Worker<br/>offline shell]
+        UI <--> DB
+        SYNC <--> DB
+        SW -.-> UI
+    end
+
+    subgraph T2["Tier 2 — Vercel Functions (thin, stateless)"]
+        AUTH["/api/auth/* — Auth.js v5"]
+        IMAP["/api/imap — ImapFlow + SMTP"]
+        AI["/api/ai/triage + /api/ai/draft"]
+    end
+
+    subgraph T3["Tier 3 — External providers"]
+        GMAIL[Gmail REST]
+        GRAPH[Microsoft Graph]
+        IMAPSRV[IMAP/SMTP servers]
+        ANTHROPIC[Anthropic Claude<br/>+ prompt caching]
+        OPENAI[OpenAI]
+        GEMINI[Google Gemini]
+    end
+
+    T1 -- HTTPS · stateless · zero email at rest --> T2
+    T2 --> T3
+    UI -. direct REST .-> GMAIL
+    UI -. direct REST .-> GRAPH
+
+    style T1 fill:#e6efff,stroke:#0066ff,color:#0a0e1c
+    style T2 fill:#f7f9fc,stroke:#475569,color:#0a0e1c
+    style T3 fill:#fef3c7,stroke:#d97706,color:#0a0e1c
 ```
 
 ## Five load-bearing principles
