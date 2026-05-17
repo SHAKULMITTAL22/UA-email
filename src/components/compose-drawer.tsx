@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAccounts } from "@/hooks/use-accounts";
 import { makeProvider } from "@/lib/providers/factory";
+import { getDB } from "@/lib/db/db";
 import { toast } from "sonner";
+import type { MessageRow } from "@/lib/db/schema";
+
+const DEMO_ACCOUNT_ID = "demo-account";
 
 interface Props {
   open: boolean;
@@ -52,14 +56,47 @@ export function ComposeDrawer({ open, onOpenChange, initial }: Props) {
       return;
     }
     setSending(true);
+
+    const recipients = to
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((email) => ({ email }));
+
     try {
+      // Demo account: simulate send by writing a sent-message row to Dexie.
+      // No network call - the demo account has no real IMAP server backing it.
+      if (acct.id === DEMO_ACCOUNT_ID) {
+        const db = getDB();
+        const id = `${DEMO_ACCOUNT_ID}:sent-${Date.now()}`;
+        const sentMsg: MessageRow = {
+          id,
+          accountId: DEMO_ACCOUNT_ID,
+          threadId: id,
+          from: { name: acct.label, email: acct.email },
+          to: recipients,
+          cc: [],
+          bcc: [],
+          subject,
+          snippet: body.slice(0, 200),
+          body,
+          receivedAt: Date.now(),
+          labels: ["Sent"],
+          flags: { unread: false, starred: false, archived: true, trashed: false },
+        };
+        await db.messages.put(sentMsg);
+        toast.success("Sent (demo). Stored locally as a Sent message.");
+        setTo("");
+        setSubject("");
+        setBody("");
+        onOpenChange(false);
+        return;
+      }
+
+      // Real account: route through the provider.
       const provider = makeProvider(acct);
       await provider.send({
-        to: to
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((email) => ({ email })),
+        to: recipients,
         subject,
         body,
       });
@@ -69,7 +106,8 @@ export function ComposeDrawer({ open, onOpenChange, initial }: Props) {
       setBody("");
       onOpenChange(false);
     } catch (e) {
-      toast.error("Send failed: " + (e instanceof Error ? e.message : "unknown"));
+      const msg = e instanceof Error ? e.message : "unknown";
+      toast.error(`Send failed: ${msg}`, { duration: 6000 });
     } finally {
       setSending(false);
     }

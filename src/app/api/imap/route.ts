@@ -7,6 +7,7 @@ import {
   setFlag,
   type ImapConnectOpts,
 } from "@/lib/providers/imap/imap-server";
+import { sendViaSmtp } from "@/lib/providers/imap/smtp-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -40,6 +41,14 @@ const Request = z.discriminatedUnion("op", [
     accountId: z.string(),
     creds: ImapCreds,
     rfc822: z.string(),
+  }),
+  z.object({
+    op: z.literal("smtp-send"),
+    accountId: z.string(),
+    creds: ImapCreds,
+    rfc822: z.string(),
+    fromAddress: z.string(),
+    toAddresses: z.array(z.string()).min(1),
   }),
   z.object({
     op: z.literal("flag"),
@@ -88,8 +97,34 @@ export async function POST(req: globalThis.Request) {
         return NextResponse.json(result);
       }
       case "send": {
+        // Legacy: APPEND-to-Sent only. Kept for callers that explicitly want
+        // to store a copy without actually delivering. New code uses smtp-send.
         await sendRaw(creds, data.rfc822);
         return NextResponse.json({ ok: true });
+      }
+      case "smtp-send": {
+        // Real send: SMTP via nodemailer using same creds, host derived from
+        // the IMAP host (Gmail/Yahoo/AOL/Outlook). Also APPENDs to Sent so
+        // the message shows up in the user's Sent folder when they next log
+        // into Gmail/Outlook.
+        const result = await sendViaSmtp(
+          {
+            imapHost: creds.host,
+            user: creds.user,
+            pass: creds.pass,
+          },
+          data.rfc822,
+          data.fromAddress,
+          data.toAddresses,
+        );
+        // Best-effort: APPEND to Sent. If the IMAP server doesn't have a Sent
+        // folder (rare), we don't fail the send.
+        try {
+          await sendRaw(creds, data.rfc822);
+        } catch {
+          // intentionally ignored
+        }
+        return NextResponse.json({ ok: true, messageId: result.messageId });
       }
       case "flag": {
         await setFlag(creds, data.uid, data.flag, data.on, data.mailbox ?? "INBOX");

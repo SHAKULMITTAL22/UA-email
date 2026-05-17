@@ -44,12 +44,20 @@ export class ImapProvider implements MailProvider {
 
   async send(draft: Draft): Promise<{ messageId: string }> {
     const rfc822 = buildRfc822(this.account.email, draft);
-    const res = await this.call("send", {
+    const toAddresses = [
+      ...draft.to.map((a) => a.email),
+      ...(draft.cc ?? []).map((a) => a.email),
+      ...(draft.bcc ?? []).map((a) => a.email),
+    ];
+    // smtp-send: real SMTP delivery via nodemailer + APPEND to Sent folder.
+    const res = await this.call("smtp-send", {
       accountId: this.account.id,
       creds: this.creds,
       rfc822,
+      fromAddress: this.account.email,
+      toAddresses,
     });
-    return { messageId: (res.messageId as string | undefined) ?? `local-${Date.now()}` };
+    return { messageId: (res.messageId as string | undefined) ?? `smtp-${Date.now()}` };
   }
 
   async archive(messageId: string): Promise<void> {
