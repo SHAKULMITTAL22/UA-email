@@ -11,15 +11,62 @@ import { CommandPalette } from "@/components/command-palette";
 import { addAccount } from "@/lib/accounts/account-store";
 import { toast } from "sonner";
 
+const VALID_FILTERS: ActiveFilter[] = [
+  "all",
+  "needs_reply",
+  "fyi",
+  "newsletter",
+  "noise",
+  "unclassified",
+  "archived",
+  "trashed",
+];
+const FILTER_KEY = "ua-email:filter";
+const ACCOUNT_KEY = "ua-email:active-account";
+
 export default function HomePage() {
-  const [filter, setFilter] = useState<ActiveFilter>("all");
-  const [activeAccountId, setActiveAccountId] = useState<string | "unified">(
-    "unified",
-  );
+  // Persist filter + active account across reloads. Sync runs every 60s
+  // and re-renders this tree; without persistence the view would jump back
+  // to "all / unified" on any state-resetting cycle.
+  const [filter, setFilterState] = useState<ActiveFilter>("all");
+  const [activeAccountId, setActiveAccountIdState] = useState<string | "unified">("unified");
   const [composeOpen, setComposeOpen] = useState(false);
   const [addAccountOpen, setAddAccountOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Hydrate from localStorage on mount (client-only)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const f = window.localStorage.getItem(FILTER_KEY);
+      if (f && (VALID_FILTERS as string[]).includes(f)) {
+        setFilterState(f as ActiveFilter);
+      }
+      const a = window.localStorage.getItem(ACCOUNT_KEY);
+      if (a) setActiveAccountIdState(a);
+    } catch {
+      /* localStorage can throw in private mode / quota — non-fatal */
+    }
+  }, []);
+
+  function setFilter(next: ActiveFilter) {
+    setFilterState(next);
+    try {
+      window.localStorage.setItem(FILTER_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function setActiveAccountId(next: string | "unified") {
+    setActiveAccountIdState(next);
+    try {
+      window.localStorage.setItem(ACCOUNT_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  }
 
   return (
     <>

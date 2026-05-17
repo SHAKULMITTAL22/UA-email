@@ -23,15 +23,25 @@ export async function archiveMessage(m: MessageRow): Promise<void> {
 }
 
 export async function deleteMessage(m: MessageRow): Promise<void> {
+  // Delete = "move to Trash". The message lives on as flags.trashed=true so
+  // it remains visible in the Trash view; "Empty trash" is the only place
+  // that purges from local storage entirely.
   if (m.accountId === DEMO_ACCOUNT_ID) {
-    await getDB().messages.delete(m.id);
+    await getDB().messages.update(m.id, {
+      flags: { ...m.flags, trashed: true, archived: false },
+    });
     return;
   }
   const account = await getAccount(m.accountId);
   if (!account) throw new Error("Account no longer exists");
   const provider = makeProvider(account);
+  // For Gmail OAuth this calls /messages/<id>/trash → server-side move to Trash.
+  // For Outlook OAuth it's a DELETE (Graph moves to Deleted Items).
+  // For IMAP it sets \Deleted flag.
   await provider.delete(m.id);
-  await getDB().messages.delete(m.id);
+  await getDB().messages.update(m.id, {
+    flags: { ...m.flags, trashed: true, archived: false },
+  });
 }
 
 export async function sendReply(replyingTo: MessageRow, body: string): Promise<void> {
