@@ -12,14 +12,17 @@ import {
   Settings,
   Pencil,
   Sparkles,
+  Archive,
   X,
   Plus,
 } from "lucide-react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { Wordmark } from "@/components/wordmark";
 import { Button } from "@/components/ui/button";
 import { useTriagedInbox } from "@/hooks/use-triaged-inbox";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useMagnetic } from "@/hooks/use-magnetic";
+import { getDB } from "@/lib/db/db";
 import { cn } from "@/lib/utils";
 import type { ActiveFilter } from "@/components/app-shell";
 
@@ -44,6 +47,16 @@ const FILTER_ITEMS: Array<{
     bucketColor: "text-bucket-newsletter",
   },
   { id: "noise", label: "Noise", icon: Trash2, bucketColor: "text-bucket-noise" },
+];
+
+const STATE_ITEMS: Array<{
+  id: ActiveFilter;
+  label: string;
+  icon: typeof Inbox;
+  bucketColor: string;
+}> = [
+  { id: "archived", label: "Archived", icon: Archive, bucketColor: "text-textMuted" },
+  { id: "trashed", label: "Trash", icon: Trash2, bucketColor: "text-textMuted" },
 ];
 
 interface SidebarProps {
@@ -71,6 +84,31 @@ export function Sidebar({
   const accounts = useAccounts();
   const composeRef = useMagnetic<HTMLButtonElement>(0.25);
 
+  // Counts of archived + trashed messages — live from Dexie, scoped to the
+  // active account if one is selected. These messages are EXCLUDED from
+  // useTriagedInbox so we count them separately here.
+  const stateCounts = useLiveQuery(
+    async () => {
+      if (typeof indexedDB === "undefined") return { archived: 0, trashed: 0 };
+      const db = getDB();
+      const all =
+        !activeAccountId || activeAccountId === "unified"
+          ? await db.messages.toArray()
+          : await db.messages
+              .where("[accountId+receivedAt]")
+              .between(
+                [activeAccountId, 0],
+                [activeAccountId, Number.MAX_SAFE_INTEGER],
+              )
+              .toArray();
+      return {
+        archived: all.filter((m) => m.flags.archived && !m.flags.trashed).length,
+        trashed: all.filter((m) => m.flags.trashed).length,
+      };
+    },
+    [activeAccountId],
+  ) ?? { archived: 0, trashed: 0 };
+
   const counts: Record<ActiveFilter, number> = {
     all: triaged?.reduce((a, b) => a + b.messages.length, 0) ?? 0,
     needs_reply: triaged?.find((b) => b.bucket === "needs_reply")?.messages.length ?? 0,
@@ -79,6 +117,8 @@ export function Sidebar({
     noise: triaged?.find((b) => b.bucket === "noise")?.messages.length ?? 0,
     unclassified:
       triaged?.find((b) => b.bucket === "unclassified")?.messages.length ?? 0,
+    archived: stateCounts.archived,
+    trashed: stateCounts.trashed,
   };
 
   useEffect(() => {
@@ -140,6 +180,38 @@ export function Sidebar({
             </button>
           );
         })}
+
+        {/* Archived / Trash — separate group below the bucket filters */}
+        <div className="pt-2 mt-2 border-t border-cardBorder/60">
+          {STATE_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = filter === item.id;
+            return (
+              <button
+                key={item.id}
+                data-active={isActive}
+                onClick={() => {
+                  onFilterChange(item.id);
+                  onMobileClose();
+                }}
+                className="sidebar-item w-full"
+                aria-current={isActive ? "page" : undefined}
+              >
+                <Icon
+                  className={cn(
+                    "h-4 w-4",
+                    isActive ? "text-aiAccent" : item.bucketColor,
+                  )}
+                  aria-hidden
+                />
+                <span>{item.label}</span>
+                {counts[item.id] > 0 && (
+                  <span className="sidebar-count">{counts[item.id]}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </nav>
 
       <nav className="space-y-1" aria-label="Accounts">

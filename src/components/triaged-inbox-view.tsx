@@ -14,6 +14,7 @@ import { useTriagedInbox } from "@/hooks/use-triaged-inbox";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useSettings } from "@/hooks/use-settings";
 import { TriageCard } from "@/components/triage-card";
+import { StateInboxView } from "@/components/state-inbox-view";
 import { SpotlightCard } from "@/components/spotlight-card";
 import { AnimatedCounter } from "@/components/animated-counter";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -172,10 +173,12 @@ export function TriagedInboxView({
     }));
   }, [triaged, searchQuery]);
 
-  // Apply sidebar filter — when not "all", show only that bucket section.
+  // Apply sidebar filter — when a bucket filter, show only that bucket
+  // section. (archived/trashed render a different view entirely, handled below.)
   const visibleBuckets = useMemo(() => {
     if (!filtered) return filtered;
     if (filter === "all") return filtered;
+    if (filter === "archived" || filter === "trashed") return filtered;
     return filtered.filter((b) => b.bucket === filter);
   }, [filtered, filter]);
 
@@ -183,8 +186,26 @@ export function TriagedInboxView({
     return <AppLoader />;
   }
 
-  const isSingleBucket = filter !== "all" && visibleBuckets && visibleBuckets.length > 0;
-  const singleBucketMeta = isSingleBucket ? BUCKET_META[filter] : null;
+  // Archived / Trash filters render a dedicated state view (not the triaged
+  // bucket UI). All other filters fall through to the regular inbox render.
+  if (filter === "archived" || filter === "trashed") {
+    return (
+      <StateInboxView
+        state={filter}
+        {...(activeAccountId !== undefined ? { activeAccountId } : {})}
+        searchQuery={searchQuery}
+      />
+    );
+  }
+
+  const isBucketFilter =
+    filter === "needs_reply" ||
+    filter === "fyi" ||
+    filter === "newsletter" ||
+    filter === "noise" ||
+    filter === "unclassified";
+  const isSingleBucket = isBucketFilter && visibleBuckets && visibleBuckets.length > 0;
+  const singleBucketMeta = isSingleBucket && isBucketFilter ? BUCKET_META[filter] : null;
   const singleBucketCount = isSingleBucket
     ? (visibleBuckets[0]?.messages.length ?? 0)
     : 0;

@@ -11,7 +11,9 @@ export type ActiveFilter =
   | "fyi"
   | "newsletter"
   | "noise"
-  | "unclassified";
+  | "unclassified"
+  | "archived"
+  | "trashed";
 
 interface AppShellProps {
   children: React.ReactNode;

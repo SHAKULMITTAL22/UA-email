@@ -1,6 +1,6 @@
 "use client";
 
-import { Inbox, Reply, Info, Newspaper } from "lucide-react";
+import { Inbox, Reply, Info, Newspaper, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ActiveFilter } from "@/components/app-shell";
 
@@ -9,6 +9,7 @@ const ITEMS: Array<{ id: ActiveFilter; label: string; icon: typeof Inbox }> = [
   { id: "needs_reply", label: "Reply", icon: Reply },
   { id: "fyi", label: "FYI", icon: Info },
   { id: "newsletter", label: "News", icon: Newspaper },
+  { id: "archived", label: "Archive", icon: Archive },
 ];
 
 interface MobileBottomNavProps {

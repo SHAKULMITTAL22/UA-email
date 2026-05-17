@@ -204,6 +204,44 @@ export function TriageCard({ message }: Props) {
             </div>
           )}
         </a>
+
+        {/* Desktop hover actions — Archive + Delete buttons visible on hover.
+            Mobile keeps the swipe gestures (no hover state on touch). */}
+        <div
+          className={cn(
+            "pointer-events-none absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity duration-150",
+            "group-hover:pointer-events-auto group-hover:opacity-100",
+          )}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              void handleArchive();
+            }}
+            disabled={pending !== null}
+            aria-label="Archive"
+            title="Archive"
+            className="rounded-md border border-cardBorder bg-canvasSecondary p-1.5 text-textMuted shadow-card transition-colors hover:border-aiAccent hover:text-aiAccent disabled:opacity-50"
+          >
+            <Archive className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              void handleDelete();
+            }}
+            disabled={pending !== null}
+            aria-label="Delete"
+            title="Delete"
+            className="rounded-md border border-cardBorder bg-canvasSecondary p-1.5 text-textMuted shadow-card transition-colors hover:border-error hover:text-error disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </motion.div>
 
       {pending === "archive" && (
