@@ -11,8 +11,13 @@
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#)
 
 **Live demo:** https://ua-email.vercel.app
-**90-second tour:** Available on request — produced via our in-house AI demo-video pipeline (currently in private beta).
 **GitHub repo:** https://github.com/SHAKULMITTAL22/UA-email
+
+## 90-second tour
+
+<video src="https://github.com/SHAKULMITTAL22/UA-email/releases/download/v1.0.0/final.mp4" controls width="720" muted></video>
+
+> If the inline player doesn't show, [stream or download final.mp4 directly](https://github.com/SHAKULMITTAL22/UA-email/releases/download/v1.0.0/final.mp4) (~5 MB, 1080p, 90s).
 
 ---
 
